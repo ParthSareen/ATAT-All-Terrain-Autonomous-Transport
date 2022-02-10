@@ -32,6 +32,9 @@ Install:
  - J-Link: https://www.segger.com/jlink-software.html
  - NRF Command Line Tools: https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Command-Line-Tools
 
+ ### Board Specific 
+ - NUCLEO_F401RE (Nucleo-F401RE) (**NOTE:** Need to use jlink to flash - https://www.segger.com/products/debug-probes/j-link/models/other-j-links/st-link-on-board/#compatible-evaluation-boards)
+
 ### Build and flash Zephyr sample app
 For the nrf52833 DK board: 
 ```
@@ -39,6 +42,12 @@ cd /zephyrproject/zephyr/
 source venv/bin/activate
 west build -p auto -b nrf52833dk_nrf52833 samples/basic/blinky
 west flash 
+```
+
+Sample App for Nucleo F401RE:
+```
+west build -b nucleo_f401re zephyr/samples/hello_world --pristine
+west flash --runner jlink
 ```
 
 ### Zephyr App Example

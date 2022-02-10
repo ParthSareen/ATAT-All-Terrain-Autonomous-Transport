@@ -2,7 +2,7 @@
 
 manifest:
   self:
-    path: zephyr_nrf_ble
+    path: zephyr_sample_app
 
   remotes:
     - name: zephyrproject-rtos
