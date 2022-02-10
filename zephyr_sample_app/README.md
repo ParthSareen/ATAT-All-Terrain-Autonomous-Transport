@@ -82,6 +82,24 @@ west debug
 ```
 This will let you use GDB to debug the app and the output will be printed to the terminal.
 
+## Minicom
+
+You can use minicom to connect to log output in a terminal.
+Install: 
+```
+sudo apt-get install minicom
+```
+
+Connect to the serial port:
+```
+minicom -D /dev/ttyACM0
+```
+If you need to figure out which port to connect to: 
+```
+ls /dev
+```
+
+**Note:** For key shortcuts, press [ctrl-A] then [Z] to see the list of shortcuts. For any command, press [ctrl-A] then [-] to execute that command. 
 
 ## Troubleshooting
 On ubuntu or debian systems, you may need to install: 
