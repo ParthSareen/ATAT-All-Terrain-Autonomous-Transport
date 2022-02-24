@@ -1,0 +1,17 @@
+# editors
+.vscode
+*.swp
+*~
+
+# python
+venv
+
+# build
+/build*
+
+# zephyr & west
+.west 
+bootloader 
+modules
+tools
+zephyr
