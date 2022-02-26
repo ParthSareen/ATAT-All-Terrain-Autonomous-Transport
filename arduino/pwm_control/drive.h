@@ -5,9 +5,9 @@
 class Drive {
   public:
     Drive(int pwm_pin_left, int pwm_pin_right, int dir_pin_left, int dir_pin_right);
-    void accelerate();
-    void decelerate();
-    void stop();
+    void accelerate(int rate);
+    void decelerate(int rate);
+    void estop();
     void turn_right();
   private:
     int _pwm_pin_left;
