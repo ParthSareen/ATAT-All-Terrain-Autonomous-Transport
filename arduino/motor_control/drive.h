@@ -11,7 +11,7 @@ enum drive_mode {
     REVERSING = 5
 };
 
-enum accel_rate{
+enum accel_rate {
   ACC_ZERO = 0,
   ACC_MINIMAL = 1,
   ACC_LOW = 2,
@@ -20,6 +20,11 @@ enum accel_rate{
   ACC_IMMENSE = 5,
   ACC_MAXIMUN = 6
 };
+
+enum motor_spin {
+    COUNTERCLOCKWISE = 0,
+    CLOCKWISE = 1
+}
 
 class Drive {
   public:

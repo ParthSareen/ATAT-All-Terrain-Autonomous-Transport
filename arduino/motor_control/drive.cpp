@@ -40,19 +40,27 @@ void Drive::accelerate(int rate){
 
 // ============== Helper Methods ==============
 
+// Note: 
+// COUNTERCLOCKWISE = 0,
+// CLOCKWISE = 1
+
+// Forward: 
+// Right => CCW
+// Left => CW
+
 void _set_forward(int left_pin, int right_pin){
-	digitalWrite(left_pin, 1);
-  	digitalWrite(right_pin, 0);
+	digitalWrite(left_pin, CLOCKWISE);
+  	digitalWrite(right_pin, COUNTERCLOCKWISE);
 }
 void _set_backward(){
-	digitalWrite(left_pin, 0);
-  	digitalWrite(right_pin, 1);
+	digitalWrite(left_pin, COUNTERCLOCKWISE);
+  	digitalWrite(right_pin, CLOCKWISE);
 }
 void _set_right(){
-	digitalWrite(left_pin, 0);
-  	digitalWrite(right_pin, 0);
+	digitalWrite(left_pin, COUNTERCLOCKWISE);
+  	digitalWrite(right_pin, COUNTERCLOCKWISE);
 }
 void _set_left(){
-	digitalWrite(left_pin, 1);
-  	digitalWrite(right_pin, 1);
+	digitalWrite(left_pin, CLOCKWISE);
+  	digitalWrite(right_pin, CLOCKWISE);
 }
