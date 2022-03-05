@@ -2,6 +2,10 @@
 #define drive_h
 #include "Arduino.h"
 
+// Motor constants
+const int MAX_RPM = 159;
+const float MAX_SPEED = 0.333; 
+
 enum drive_mode {
     ACCELERATING = 0, 
     DECELERATING = 1, 
