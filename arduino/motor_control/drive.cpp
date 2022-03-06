@@ -101,13 +101,14 @@ void Drive::turn_right(int speed = MAX_SPEED){
 
   int turn_speed_i = convert_speed_to_i(speed); 
 
+  // Command robot to turn
   _set_right();
-  
   analogWrite(_pwm_pin_left, turn_speed_i);
   analogWrite(_pwm_pin_right, turn_speed_i);
   Serial.print("Turn right at");
   Serial.println(turn_speed_i);
-  
+
+  // Update speed parameter
   _current_speed = turn_speed_i;
 }
 
@@ -123,16 +124,30 @@ void Drive::turn_left(int speed = MAX_SPEED){
 
   int turn_speed_i = convert_speed_to_i(speed); 
 
+  // Command robot to turn
   _set_left();
-  
   analogWrite(_pwm_pin_left, turn_speed_i);
   analogWrite(_pwm_pin_right, turn_speed_i);
   Serial.print("Turn left at");
   Serial.println(turn_speed_i);
-  
+
+  // Update speed parameter
   _current_speed = turn_speed_i;
 }
 
+void Drive::estop(){
+
+  // Set robot state
+  _mode = STOPPED;
+
+  // Set PWM to stopped
+  analogWrite(_pwm_pin_left, 255);
+  analogWrite(_pwm_pin_right, 255);
+  Serial.println("Stop");
+
+  // Update speed parameter
+  _current_speed = 0;
+}
 
 // ============== Helper Methods ==============
 
