@@ -22,7 +22,7 @@ enum accel_rate {
   ACC_MEDIUM = 3,
   ACC_HIGH = 4,
   ACC_IMMENSE = 5,
-  ACC_MAXIMUN = 6
+  ACC_MAXIMUM = 6
 };
 
 enum motor_spin {

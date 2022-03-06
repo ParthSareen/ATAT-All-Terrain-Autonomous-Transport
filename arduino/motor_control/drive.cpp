@@ -89,6 +89,51 @@ void Drive::deccelerate(int rate){
 	_current_rpm = convert_i_to_rpm(240); 
 }
 
+/**
+* input parameter optional; defaults to max speed
+* 
+* Spins clockwise indefinitely
+*/
+void Drive::turn_right(int speed = MAX_SPEED){
+
+  // Set robot state
+  _mode = TURNING;
+
+  int turn_speed_i = convert_speed_to_i(speed); 
+
+  _set_right();
+  
+  analogWrite(_pwm_pin_left, turn_speed_i);
+  analogWrite(_pwm_pin_right, turn_speed_i);
+  Serial.print("Turn right at");
+  Serial.println(turn_speed_i);
+  
+  _current_speed = turn_speed_i;
+}
+
+/**
+* input parameter optional; defaults to max speed
+* 
+* Spins counterclockwise indefinitely
+*/
+void Drive::turn_left(int speed = MAX_SPEED){
+
+  // Set robot state
+  _mode = TURNING;
+
+  int turn_speed_i = convert_speed_to_i(speed); 
+
+  _set_left();
+  
+  analogWrite(_pwm_pin_left, turn_speed_i);
+  analogWrite(_pwm_pin_right, turn_speed_i);
+  Serial.print("Turn left at");
+  Serial.println(turn_speed_i);
+  
+  _current_speed = turn_speed_i;
+}
+
+
 // ============== Helper Methods ==============
 
 // Note: 
@@ -118,7 +163,7 @@ void _set_left(){
 
 // Note: 
 // i = 0 => Max speed
-// i = 255 => No spedd
+// i = 255 => No speed
 // V_max = 0.333m/s
 // omega_max = 16.65 rad/s
 
