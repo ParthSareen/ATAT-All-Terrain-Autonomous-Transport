@@ -149,28 +149,29 @@ int * Sensors::calibrateIMU(MPU6050 accelgyro){
     		}
     		i++;
     		delay(2); //Needed so we don't get repeated measures
-    		Serial.println("...");
+    	}
+    	Serial.println("...");
 
-    		if (abs(mean_ax)<=acel_deadzone) ready++;
-    		else ax_offset=ax_offset-mean_ax/acel_deadzone;
+    	if (abs(mean_ax)<=acel_deadzone) ready++;
+    	else ax_offset=ax_offset-mean_ax/acel_deadzone;
 
-    		if (abs(mean_ay)<=acel_deadzone) ready++;
-    		else ay_offset=ay_offset-mean_ay/acel_deadzone;
+    	if (abs(mean_ay)<=acel_deadzone) ready++;
+    	else ay_offset=ay_offset-mean_ay/acel_deadzone;
 
-    		if (abs(16384-mean_az)<=acel_deadzone) ready++;
-    		else az_offset=az_offset+(16384-mean_az)/acel_deadzone;
+    	if (abs(16384-mean_az)<=acel_deadzone) ready++;
+    	else az_offset=az_offset+(16384-mean_az)/acel_deadzone;
 
-    		if (abs(mean_gx)<=giro_deadzone) ready++;
-		    else gx_offset=gx_offset-mean_gx/(giro_deadzone+1);
+    	if (abs(mean_gx)<=giro_deadzone) ready++;
+		else gx_offset=gx_offset-mean_gx/(giro_deadzone+1);
 		
-		    if (abs(mean_gy)<=giro_deadzone) ready++;
-		    else gy_offset=gy_offset-mean_gy/(giro_deadzone+1);
+		if (abs(mean_gy)<=giro_deadzone) ready++;
+		else gy_offset=gy_offset-mean_gy/(giro_deadzone+1);
 		
-		    if (abs(mean_gz)<=giro_deadzone) ready++;
-		    else gz_offset=gz_offset-mean_gz/(giro_deadzone+1);
+		if (abs(mean_gz)<=giro_deadzone) ready++;
+		else gz_offset=gz_offset-mean_gz/(giro_deadzone+1);
 
-    		if (ready==6) break;
-  		}
+    	if (ready==6) break;
+  	   }
     	state++;
     	delay(1000);
   	}
@@ -229,7 +230,6 @@ int * Sensors::calibrateIMU(MPU6050 accelgyro){
     static int calibrations[6] = {ax_offset, ay_offset, az_offset, gx_offset, gy_offset, gz_offset};
     return calibrations;
   }
-}
 }
 
 /**
