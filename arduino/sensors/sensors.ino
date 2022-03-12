@@ -1,43 +1,46 @@
 // Motor Control
 #include "sensors.h"
+#include "MPU6050.h"
+#include "Wire.h"
 
-// Initialize Sensor Pins
-Sensors ATAT(10,11,8,9);//Trig, Echo Array, Number of Sensors
+//Setting up Sensor 
+int echo_array[3] = {8,9,10};
+Sensors ATAT(7, echo_array, 3);
+
+//Setting up Ultrasonic and IMU
+HCSR04 hc(7, new int[3]{8, 9, 10}, 3);
+MPU6050 accelgyro;
+
+float *ultrasonicReadings;
+int16_t *imuReadings;
+int *imuCalibration;
 
 void setup() {
   Wire.begin();
   Serial.begin(115200);
-  accelgyro.initialize();
-
-  Serial.println("Testing device connections...");
-  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+  Serial.println("Ultrasonic Stuff");
 }
 
 void loop() {
-  AtAt.accelerate(high);
-  
-//  int i=0;
-//
-//  // Alternate direction
-//  flag = flag ^ HIGH;
-//  digitalWrite(DIR_PIN, flag);
-//
-//   //Speed up
-//  for(i=255; i>0; i--){
-//    analogWrite(PWM_PIN, i);
-//    Serial.print("Speed up: ");
-//    Serial.println(i);
-//    delay(10);
-//  }
-//  
-//  delay(250);
-//    
-//  //Slowdown
-//  for(i=1; i<255; i++){
-//    analogWrite(PWM_PIN, i);
-//    Serial.print("Speed down: ");
-//    Serial.println(i);
-//    delay(10);
-//  }
+  //Test for Calibration
+  //bool status = ATAT.calibrateUltrasonic(5, hc);
+  //Serial.println(status);
 
+  //Test for Reading Ultrasonic
+  //ultrasonicReadings = ATAT.readUltrasonic(hc);
+  //for ( int i = 0; i < 3; i++ ) {
+      //Serial.println(*(ultrasonicReadings + i));
+   //}
+
+   //Test for IMU Reading
+   //imuReadings = ATAT.readIMU(accelgyro);
+   //for ( int i = 0; i < 6; i++ ) {
+   //   Serial.println(*(imuReadings + i));
+   //}
+
+   //Test for IMU Calibration
+   imuCalibration = ATAT.calibrateIMU(accelgyro);
+   for ( int i = 0; i < 6; i++ ) {
+      Serial.println(*(imuCalibration + i));
+   }
 }
