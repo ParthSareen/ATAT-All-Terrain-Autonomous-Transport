@@ -188,7 +188,7 @@ void Drive::cruise(float speed = MAX_SPEED, bool fwd = true){
 *
 * returns the distance that's been travelled
 */
-float * Drive::encoderReading(float lastTime, float speed = MAX_SPEED, float acc_distance);{
+float * Drive::encoderReading(unsigned long lastTime, float speed = MAX_SPEED, float acc_distance);{
   //Diameter = 41.5cm - Radius = 20.75cm
   int pulse_read_left = 0;
   int pulse_read_right = 0;
@@ -209,7 +209,7 @@ float * Drive::encoderReading(float lastTime, float speed = MAX_SPEED, float acc
     pulse_read_left += pulseIn(_encoder_pin_left, HIGH, 500000); //SIGNAL OUTPUT PIN 9 with  white line,cycle = 2*i,1s = 1000000us，Signal cycle pulse number：27*2
     pulse_read_right += pulseIn(_encoder_pin_right, HIGH, 500000); //SIGNAL OUTPUT PIN 9 with  white line,cycle = 2*i,1s = 1000000us，Signal cycle pulse number：27*2
   }
-  
+
   pulse_read_left = pulse_read >> 3;
   pulse_read_right = pulse_read >> 3;
   

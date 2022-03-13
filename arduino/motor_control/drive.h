@@ -51,7 +51,7 @@ class Drive {
     void turn_left(float speed = MAX_SPEED);
     void reverse();
     void cruise(float speed = MAX_SPEED, bool fwd = true);
-    float encoderReading(float read_Time, float speed = MAX_SPEED, float acc_distance);
+    float encoderReading(unsigned long lastTime, float speed = MAX_SPEED, float acc_distance);
   
   private:
     int _pwm_pin_left;
