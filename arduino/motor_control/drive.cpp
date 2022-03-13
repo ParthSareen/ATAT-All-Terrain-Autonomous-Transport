@@ -19,20 +19,21 @@ Drive::Drive(int pwm_pin_left, int pwm_pin_right, int dir_pin_left, int dir_pin_
 }
 
 /**
-* input parameter from rate enum, e.g. "low"
+* input parameter 1 from accel_rate enum, e.g. "ACC_LOW"
+* input parameter 2 optional, defaults to true (forward)
 *
 * Currently, accelerate only operates in the forward direction
 * Accelerates to maximun speed from the current speed
 */
-void Drive::accelerate(int rate){
+void Drive::accelerate(int rate, bool fwd = true){
 
 	Serial.println("==> Accelerating");
 
 	// Set robot state
 	_mode = ACCELERATING; 
 
-	// Set direction pins so that robot moves forward
-	_set_forward(_dir_pin_left, _dir_pin_right);
+	/// Set direction of motors
+  fwd ? _set_forward() : _set_backward();
 
 	// Get current speed as starting point
 	int curr_speed_i = convert_speed_to_i(_current_speed); 
@@ -57,17 +58,21 @@ void Drive::accelerate(int rate){
 }
 
 /**
-* input parameter from rate enum, e.g. "low"
+* input parameter from accel_rate enum, e.g. "ACC_LOW"
+* input parameter 2 optional, defaults to true (forward)
 * 
 * Doesn't bring robot to a complete speed, only to a minimun speed from current position
 */
-void Drive::deccelerate(int rate){
+void Drive::deccelerate(int rate, bool fwd = true){
 
 	Serial.println("==> Deccelerating");
 
 	// Set robot state
 	_mode = DECELERATING;
 
+  // Set direction of motors
+  fwd ? _set_forward() : _set_backward();
+  
 	// Get current speed as starting point
 	int curr_speed_i = convert_speed_to_i(_current_speed); 
 
@@ -94,7 +99,7 @@ void Drive::deccelerate(int rate){
 * 
 * Spins clockwise indefinitely
 */
-void Drive::turn_right(int speed = MAX_SPEED){
+void Drive::turn_right(float speed = MAX_SPEED){
 
   // Set robot state
   _mode = TURNING;
@@ -110,6 +115,7 @@ void Drive::turn_right(int speed = MAX_SPEED){
 
   // Update speed parameter
   _current_speed = turn_speed_i;
+  _current_rpm = convert_speed_to_rpm(speed);
 }
 
 /**
@@ -117,7 +123,7 @@ void Drive::turn_right(int speed = MAX_SPEED){
 * 
 * Spins counterclockwise indefinitely
 */
-void Drive::turn_left(int speed = MAX_SPEED){
+void Drive::turn_left(float speed = MAX_SPEED){
 
   // Set robot state
   _mode = TURNING;
@@ -133,6 +139,8 @@ void Drive::turn_left(int speed = MAX_SPEED){
 
   // Update speed parameter
   _current_speed = turn_speed_i;
+  _current_rpm = convert_speed_to_rpm(speed);
+
 }
 
 void Drive::estop(){
@@ -147,6 +155,28 @@ void Drive::estop(){
 
   // Update speed parameter
   _current_speed = 0;
+  _current_rpm = 0;
+
+}
+
+/*
+ * input parameters optional; defaults to MAX_SPEED; true (forward)
+ */
+void Drive::cruise(float speed = MAX_SPEED, bool fwd = true){
+  
+  // Set robot state
+  _mode = CRUISING;
+  
+  int cruise_speed_i = convert_speed_to_i(speed); 
+  fwd ? _set_forward() : _set_backward();
+  
+  analogWrite(_pwm_pin_left, cruise_speed_i);
+  analogWrite(_pwm_pin_right, cruise_speed_i);
+
+  // Update speed parameter
+  _current_speed = speed;
+  _current_rpm = convert_speed_to_rpm(speed);
+
 }
 
 // ============== Helper Methods ==============
@@ -159,21 +189,21 @@ void Drive::estop(){
 // Right => CCW
 // Left => CW
 
-void _set_forward(int left_pin, int right_pin){
-	digitalWrite(left_pin, CLOCKWISE);
-  	digitalWrite(right_pin, COUNTERCLOCKWISE);
+void Drive::_set_forward(){
+	digitalWrite(_dir_pin_left, CLOCKWISE);
+  digitalWrite(_dir_pin_right, COUNTERCLOCKWISE);
 }
-void _set_backward(){
-	digitalWrite(left_pin, COUNTERCLOCKWISE);
-  	digitalWrite(right_pin, CLOCKWISE);
+void Drive::_set_backward(){
+	digitalWrite(_dir_pin_left, COUNTERCLOCKWISE);
+  digitalWrite(_dir_pin_right, CLOCKWISE);
 }
-void _set_right(){
-	digitalWrite(left_pin, COUNTERCLOCKWISE);
-  	digitalWrite(right_pin, COUNTERCLOCKWISE);
+void Drive::_set_right(){
+	digitalWrite(_dir_pin_left, COUNTERCLOCKWISE);
+  digitalWrite(_dir_pin_right, COUNTERCLOCKWISE);
 }
-void _set_left(){
-	digitalWrite(left_pin, CLOCKWISE);
-  	digitalWrite(right_pin, CLOCKWISE);
+void Drive::_set_left(){
+	digitalWrite(_dir_pin_left, CLOCKWISE);
+  digitalWrite(_dir_pin_right, CLOCKWISE);
 }
 
 // Note: 
@@ -192,6 +222,10 @@ int convert_i_to_rpm(int i){
 
 int convert_speed_to_i(float speed){
 	return 255 - ((255*speed)/0.333);
+}
+
+int convert_speed_to_rpm(float speed){
+  return convert_i_to_rpm(convert_speed_to_i(speed));
 }
 
 int convert_rpm_to_i(int rpm){
