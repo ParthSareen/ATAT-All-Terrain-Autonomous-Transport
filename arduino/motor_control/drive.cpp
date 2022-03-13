@@ -2,16 +2,20 @@
 
 // ============== Public Methods ==============
 
-Drive::Drive(int pwm_pin_left, int pwm_pin_right, int dir_pin_left, int dir_pin_right){
+Drive::Drive(int pwm_pin_left, int pwm_pin_right, int dir_pin_left, int dir_pin_right, int encoder_pin_left, int encoder_pin_right){
   pinMode(pwm_pin_left, OUTPUT);
   pinMode(pwm_pin_right, OUTPUT);
   pinMode(dir_pin_left, OUTPUT);
   pinMode(dir_pin_right, OUTPUT);
+  pinMode(encoder_pin_left, OUTPUT);
+  pinMode(encoder_pin_right, OUTPUT);
 
   _pwm_pin_left = pwm_pin_left;
   _pwm_pin_right = pwm_pin_right;
   _dir_pin_left = dir_pin_left;
   _dir_pin_right = dir_pin_right;
+  _encoder_pin_left = encoder_pin_left;
+  _encoder_pin_right = encoder_pin_right;
 
   float _current_speed = 0; 
   int _current_rpm = 0;
@@ -177,6 +181,48 @@ void Drive::cruise(float speed = MAX_SPEED, bool fwd = true){
   _current_speed = speed;
   _current_rpm = convert_speed_to_rpm(speed);
 
+}
+/**
+* input parameter 1 duration of encoder reading
+* input parameter 2 accumulated speed
+*
+* returns the distance that's been travelled
+*/
+float * Drive::encoderReading(float lastTime, float speed = MAX_SPEED, float acc_distance);{
+  //Diameter = 41.5cm - Radius = 20.75cm
+  int pulse_read_left = 0;
+  int pulse_read_right = 0;
+  unsigned long currentTime;
+  unsigned long totalMinutes;
+  unsigned long distance_left;
+  unsigned long distance_right;
+  static float encoderReadings[2];
+  
+  //Setup of the Analog Writes
+  analogWrite(_encoder_pin_left, MAX_SPEED);
+  analogWrite(_encoder_pin_right, MAX_SPEED);
+
+  delay(2500);
+
+  //Reads in the pulses and bit manipulations
+  for(int j = 0;j<8;j++)  {
+    pulse_read_left += pulseIn(_encoder_pin_left, HIGH, 500000); //SIGNAL OUTPUT PIN 9 with  white line,cycle = 2*i,1s = 1000000us，Signal cycle pulse number：27*2
+    pulse_read_right += pulseIn(_encoder_pin_right, HIGH, 500000); //SIGNAL OUTPUT PIN 9 with  white line,cycle = 2*i,1s = 1000000us，Signal cycle pulse number：27*2
+  }
+  
+  pulse_read_left = pulse_read >> 3;
+  pulse_read_right = pulse_read >> 3;
+  
+  //Time with regards to the total minutes since the last read
+  currentTime = millis();
+  totalMinutes = ((currentTime - lastTime) / 1000);
+  lastTime = currentTime;
+
+  distance_left = numMinutes * (111111 / pulse_read) * (2 * PI * radius);
+  distance_right = numMinutes * (111111 / pulse_read) * (2 * PI * radius);
+  encoderReadings = [distance_left, distance_right];
+
+  return encoderReadings;
 }
 
 // ============== Helper Methods ==============
