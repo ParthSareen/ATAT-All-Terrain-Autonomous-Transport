@@ -6,8 +6,8 @@
 
 class Sensors {
   public:
-    Sensors(int trig_pin, int echo_pin[], int num_sensors);
-    float * readUltrasonic(HCSR04 hc);
+    Sensors(int trig_pin, int echo_pin[3], int num_sensors);
+    void readUltrasonic(HCSR04 *hc, float usReadings[3]);
     int16_t * readIMU(MPU6050 accelgyro);
     bool calibrateUltrasonic(int num_readings, HCSR04 hc);
     int * calibrateIMU(MPU6050 accelgyro);
@@ -15,7 +15,7 @@ class Sensors {
   private:
     int _trig_pin;
     int _num_sensors;
-    int _echo_pin[3];
+    int* _echo_pin;
 };
 
 #endif
