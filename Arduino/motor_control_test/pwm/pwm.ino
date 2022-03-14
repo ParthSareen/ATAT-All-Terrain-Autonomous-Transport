@@ -1,4 +1,4 @@
-// PWM Control Test
+// PWM Test
 
 //Initializing Pin
 const int PWM_PIN = 11;
