@@ -18,11 +18,12 @@ void setup() {
 void loop() {
 
   // For getting the private members of the drive class
-  float curr_speed = 1.0;
-  int curr_rpm = 1;
-  int mode = 1;
+  float curr_speed = 0.0;
+  int curr_rpm = 0;
+  int mode = 0;
 
  // Wait before running
+ // Send 1 through serial monitor to start
   while(set == 0){
     Serial.println("==> Waiting ");
     delay(50);

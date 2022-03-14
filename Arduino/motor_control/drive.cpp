@@ -61,11 +61,6 @@ void Drive::accelerate(int rate, bool fwd = true){
 	// Set new speed 
 	_current_speed = MAX_SPEED; 
 	_current_rpm = MAX_RPM; 
-
-	Serial.println("accelerate()");
-	Serial.println(_current_speed);
-  	Serial.println(_current_rpm);
-  	Serial.println(_mode);
 }
 
 /**
@@ -200,11 +195,6 @@ void Drive::get_params(float* curr_speed, int* curr_rpm, int* mode){
 	*curr_speed = _current_speed;  
 	*curr_rpm = _current_rpm;
 	*mode = _mode;
-
-	Serial.println("get_params()");
-	Serial.println(_current_speed);
-  	Serial.println(_current_rpm);
-  	Serial.println(_mode);
 }
 
 // ============== Helper Methods ==============
