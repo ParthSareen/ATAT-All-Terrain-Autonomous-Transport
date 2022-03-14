@@ -192,10 +192,15 @@ float * Drive::encoderReading(unsigned long lastTime, float speed = MAX_SPEED, f
   //Diameter = 41.5cm - Radius = 20.75cm
   int pulse_read_left = 0;
   int pulse_read_right = 0;
+  float distance_left;
+  float distance_right;
+  float sim_rpm_left;
+  float sim_rpm_right;
+  float measured_rpm_left;
+  float measured_rpm_right; 
   unsigned long currentTime;
   unsigned long totalMinutes;
-  unsigned long distance_left;
-  unsigned long distance_right;
+
   static float encoderReadings[2];
   
   //Setup of the Analog Writes
@@ -218,23 +223,27 @@ float * Drive::encoderReading(unsigned long lastTime, float speed = MAX_SPEED, f
   totalMinutes = ((currentTime - lastTime) / 1000);
   lastTime = currentTime;
 
-  sim_distance_left = (-(0.5795)*exp(0.02228 * pulse_read_left)) + 156
-  sim_distance_right = (-(0.5795)*exp(0.02228 * pulse_read_right)) + 156
-  distance_left = numMinutes * (111111 / pulse_read) * (2 * PI * radius);
-  distance_right = numMinutes * (111111 / pulse_read) * (2 * PI * radius);
+  //Calculating simulated and measured 
+  sim_rpm_left = (-(0.5795)*exp(0.02228 * pulse_read_left)) + 156;
+  sim_rpm_right = (-(0.5795)*exp(0.02228 * pulse_read_right)) + 156;
+  measured_rpm_left = 111111 / pulse_read_left;
+  measured_rpm_right = 111111 / pulse_read_right;
 
-  if (abs(sim_distance_left - distance_left) > 5){
-    encoderReadings[0] = [sim_distance_left];
+  if (abs(sim_rpm_left - measured_rpm_left) > 5){
+    distance_left = numMinutes * sim_rpm_left * (2 * PI * radius);
+    
   }else{
-    encoderReadings[0] = [distance_left];
+    distance_left = numMinutes * measured_rpm_left * (2 * PI * radius);
   }
 
- if (abs(sim_distance_right - distance_right) > 5){
-    encoderReadings[1] = [sim_distance_right];
+ if (abs(sim_rpm_right - measured_rpm_right) > 5){
+    distance_right = numMinutes * sim_rpm_right * (2 * PI * radius);
   }else{
-    encoderReadings[1] = [distance_right];
+    distance_right = numMinutes * measured_rpm_right * (2 * PI * radius);
   }
-  
+
+  encoderReadings = [distance_left, distance_right];
+
   return encoderReadings;
 }
 
