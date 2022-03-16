@@ -7,16 +7,18 @@
 #include "Adafruit_ICM20X.h"
 #include "Adafruit_ICM20948.h"
 #include "Adafruit_Sensor.h"
-#define NUM_US 3
+#define NUM_US 2
 #define NUM_SENS 6
+//#define trig_pin 7
 Adafruit_ICM20948 icm;
-int *ea = new int[NUM_US]{D6, D7, D8}; 
+
+int *ea = new int[NUM_US]{D6, D7}; 
 HCSR04 hc(D5, ea, NUM_US); 
 int echo_array[3] = {8,9,10};
-Sensors ATAT(7, echo_array, 3);
-
+Sensors ATAT(7, echo_array, 2);
+long duration;
+int distance;
 //Setting up Ultrasonic and IMU
-MPU6050 accelgyro;
 
 int track[6][6] = {  {0, 0, 0, 0, 0, 0}, 
                      {0, 0, 0, 0, 0, 0},
@@ -26,8 +28,8 @@ int track[6][6] = {  {0, 0, 0, 0, 0, 0},
                      {0, 0, 0, 1, -1, -1}
                    };
 
-float us_array[3] = {0, 0, 0};
-float imu_array[6] = {0, 0, 0, 0, 0, 0};
+float us_array[NUM_US] = {0, 0};
+float imu_array[NUM_SENS] = {0, 0, 0, 0, 0, 0};
 
 
 
@@ -57,7 +59,6 @@ void imuRead(){
   Serial.println("Reading from IMU"); 
 }
 
-
 bool sensorDiagnostic(){ 
 //  us_array = ultrasonicRead(); 
 //  imu_array = imuRead(); 
@@ -77,9 +78,19 @@ bool sensorDiagnostic(){
 void setup() {
   Wire.begin();
   Serial.begin(115200);
+  // D6, D7, D8
+//  pinMode(D6, INPUT);
+//  pinMode(D7, INPUT);
+//  pinMode(D8, INPUT);
+//  pinMode(D5, OUTPUT);
+
+//  pinMode(trig_pin, OUTPUT); // Sets the trigPin as an OUTPUT
+  Serial.println("Ultrasonic Sensor HC-SR04 Test"); // print some text in Serial Monitor
+  Serial.println("with Arduino UNO R3");
+
   Serial.println("Calibrating ICM");
-  
-  ATAT.calibrateICM(&icm);
+  ATAT.calibrateUltrasonic(6, &hc); 
+  //ATAT.calibrateICM(&icm);
   Serial.println("Ultrasonic Stuff");
   //Pin setup 
 //  pinMode(resetPin, INPUT);
@@ -97,17 +108,19 @@ void setup() {
 }
 
 void loop() { 
-  //bool status = ATAT.calibrateUltrasonic(5, hc);
-  float * ultrasonicReadings = new float[3]; 
-  float * imuReadings = new float[6];
-  ATAT.readUltrasonic(&hc, ultrasonicReadings); 
-  for(int i = 0; i < NUM_US; i++){ 
-    Serial.println(ultrasonicReadings[i]); 
+//  bool status = ATAT.calibrateUltrasonic(5, hc);
+  float * ultrasonicReadings = new float[NUM_US]; 
+  float * imuReadings = new float[NUM_SENS];
+   ATAT.readUltrasonic(&hc, ultrasonicReadings); 
+   for(int i = 0; i < NUM_US; i++){ 
+     Serial.println(ultrasonicReadings[i]); 
   }
-  ATAT.readICM(&icm, imuReadings);
-  for(int i = 0; i < NUM_SENS; i++){ 
-    Serial.println(imuReadings[i]);
-  }
+
+
+//  ATAT.readICM(&icm, imuReadings);
+//  for(int i = 0; i < NUM_SENS; i++){ 
+//    Serial.println(imuReadings[i]);
+//  }
   ultrasonicReadings = NULL;
   imuReadings = NULL;
   delete[] imuReadings;
