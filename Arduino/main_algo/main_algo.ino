@@ -59,28 +59,6 @@ void imuRead(){
   Serial.println("Reading from IMU"); 
 }
 
-//void customUS(int trig_pin, int echo_pin, int i) {
-////    pinMode(trig_pin, OUTPUT);
-////    pinMode(echo_pin, INPUT);
-//  digitalWrite(trig_pin, LOW);
-//  delayMicroseconds(2);
-//  // Sets the trigPin HIGH (ACTIVE) for 10 microseconds
-//  digitalWrite(trig_pin, HIGH);
-//  delayMicroseconds(10);
-//  digitalWrite(trig_pin, LOW);
-//  // Reads the echoPin, returns the sound wave travel time in microseconds
-//  duration = pulseIn(echo_pin, HIGH);
-//  // Calculating the distance
-//  distance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
-//  // Displays the distance on the Serial Monitor
-//  Serial.print("i: ");
-//  Serial.print(i);
-//  Serial.print(" Distance: ");
-//  Serial.print(distance);
-//  Serial.println(" cm");
-//  
-//}
-
 bool sensorDiagnostic(){ 
 //  us_array = ultrasonicRead(); 
 //  imu_array = imuRead(); 
