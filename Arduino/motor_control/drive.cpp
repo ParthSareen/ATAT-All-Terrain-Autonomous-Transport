@@ -3,16 +3,20 @@
 // ============== Public Methods ==============
 
 // Left right orientation based on looking at the robot from the front position
-Drive::Drive(int pwm_pin_left, int pwm_pin_right, int dir_pin_left, int dir_pin_right){
+Drive::Drive(int pwm_pin_left, int pwm_pin_right, int dir_pin_left, int dir_pin_right, int encoder_pin_left, int encoder_pin_right){
   pinMode(pwm_pin_left, OUTPUT);
   pinMode(pwm_pin_right, OUTPUT);
   pinMode(dir_pin_left, OUTPUT);
   pinMode(dir_pin_right, OUTPUT);
+  pinMode(encoder_pin_left, INPUT);
+  pinMode(encoder_pin_right, INPUT);
 
   _pwm_pin_left = pwm_pin_left;
   _pwm_pin_right = pwm_pin_right;
   _dir_pin_left = dir_pin_left;
   _dir_pin_right = dir_pin_right;
+  _encoder_pin_left = encoder_pin_left;
+  _encoder_pin_right = encoder_pin_right;
 
   // Initialize
   _current_speed = 0; 
@@ -186,6 +190,67 @@ void Drive::cruise(float speed = MAX_SPEED, bool fwd = true){
   _current_speed = speed;
   _current_rpm = convert_speed_to_rpm(speed);
 
+}
+
+/**
+* input parameter 1 duration of encoder reading
+* input parameter 2 accumulated speed
+*
+* returns the distance that's been travelled
+*/
+float * Drive::encoderReading(unsigned long *lastTime, float speed = MAX_SPEED){
+  float radius = 0.2075;
+  int pulse_read_left = 0;
+  int pulse_read_right = 0;
+  float distance_left = 0;
+  float distance_right = 0;
+  float sim_rpm_left = 0;
+  float sim_rpm_right = 0;
+  float measured_rpm_left;
+  float measured_rpm_right; 
+  unsigned long currentTime = 0;
+  float totalSeconds = 0;
+
+  delay(2500);
+
+  //Reads in the pulses and bit manipulations
+  for(int j = 0;j<8;j++)  {
+    pulse_read_right += pulseIn(_encoder_pin_right, HIGH, 500000); //SIGNAL OUTPUT PIN 9 with  white line,cycle = 2*i,1s = 1000000usï¼ŒSignal cycle pulse numberï¼š27*2
+  }
+  
+  for(int j = 0;j<8;j++)  {
+    pulse_read_left += pulseIn(_encoder_pin_left, HIGH, 500000); //SIGNAL OUTPUT PIN 9 with  white line,cycle = 2*i,1s = 1000000usï¼ŒSignal cycle pulse numberï¼š27*2
+  }
+
+  pulse_read_left = pulse_read_left >> 3;
+  pulse_read_right = pulse_read_right >> 3;
+
+  //Calculating simulated and measured 
+  sim_rpm_left = ((-0.5795 * exp(0.02228*(111111/pulse_read_left))) + 156)/60.00;
+  sim_rpm_right = ((-0.5795 * exp(0.02228*(111111/pulse_read_right))) + 156)/60.00;  
+  measured_rpm_left = ((111111.000 / pulse_read_left) / 60.000);
+  measured_rpm_right = ((111111.000 / pulse_read_right) / 60.000);
+  
+  //Time with regards to the total minutes since the last read
+  currentTime = millis();
+  totalSeconds = ((currentTime - *lastTime) / 1000.000);
+  *lastTime = currentTime;
+
+  if (abs(sim_rpm_left - measured_rpm_left) > 5){
+    distance_left = totalSeconds * sim_rpm_left * (2 * PI * radius);
+  }else{
+    distance_left = totalSeconds * measured_rpm_left * (2 * PI * radius);
+  }
+
+ if (abs(sim_rpm_right - measured_rpm_right) > 5){
+    distance_right = totalSeconds * sim_rpm_right * (2 * PI * radius);
+  }else{
+    distance_right = totalSeconds * measured_rpm_right * (2 * PI * radius);
+  }
+
+  static float encoderReadings[2] = {distance_left, distance_right};
+
+  return encoderReadings;
 }
 
 /*

@@ -44,7 +44,7 @@ enum motor_spin {
 
 class Drive {
   public:
-    Drive(int pwm_pin_left, int pwm_pin_right, int dir_pin_left, int dir_pin_right);
+    Drive(int pwm_pin_left, int pwm_pin_right, int dir_pin_left, int dir_pin_right, int encoder_pin_left, int encoder_pin_right);
     void accelerate(int rate, bool fwd = true);
     void deccelerate(int rate, bool fwd = true);
     void estop();
@@ -52,6 +52,7 @@ class Drive {
     void turn_left(float speed = MAX_SPEED);
     void reverse();
     void cruise(float speed = MAX_SPEED, bool fwd = true);
+    float * encoderReading(unsigned long* lastTime, float speed = MAX_SPEED);
     void get_params(float* curr_speed, int* curr_rpm, int* mode);
   
   private:
@@ -61,7 +62,9 @@ class Drive {
     int _dir_pin_right;
     float _current_speed; 
     int _current_rpm;
-    int _mode; 
+    int _mode;
+    int _encoder_pin_left;
+    int _encoder_pin_right;
 
     // Helper functions
     void _set_forward();
