@@ -21,11 +21,6 @@ class Sensors {
     int _trig_pin;
     int _num_sensors;
     int* _echo_pin;
-    uint16_t measurement_delay_us;
-    long previousMillis; // will store last time LED was updated
-    long interval; // interval at which to blink (milliseconds), 1 ms shorter than desired (time to finish processing)
-    long dt; // change in time actual (milliseconds)
-    float minGyroValue; // min +/-Gyro value, (converted to rad/s)
 };
 
 #endif

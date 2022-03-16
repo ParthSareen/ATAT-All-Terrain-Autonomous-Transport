@@ -12,21 +12,12 @@
 #define ICM_SCK 13
 #define ICM_MISO 12
 #define ICM_MOSI 11
-uint16_t measurement_delay_us = 65535;
-long previousMillis = 0; // will store last time LED was updated
-long interval = 19; // interval at which to blink (milliseconds), 1 ms shorter than desired (time to finish processing)
-long dt; // change in time actual (milliseconds)
-const float minGyroValue = 0.25; // min +/-Gyro value, (converted to rad/s)
 // ============== Public Methods ==============
 
 Sensors::Sensors(int trig_pin, int echo_pin[3], int num_sensors){
   _trig_pin = trig_pin;
   _echo_pin = echo_pin;
   _num_sensors = num_sensors;
-  measurement_delay_us = 65535;
-  previousMillis = 0;
-  interval = 19;
-  minGyroValue = 0.25;
 }
 
 /*
@@ -387,4 +378,3 @@ void Sensors::readICM(Adafruit_ICM20948* icm, float icmReadings[6]){
   icmReadings[5] = gyro.gyro.z;
   return;
 }
-
