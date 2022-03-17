@@ -198,7 +198,7 @@ void Drive::cruise(float speed = MAX_SPEED, bool fwd = true){
 *
 * returns the distance that's been travelled
 */
-float * Drive::encoderReading(unsigned long *lastTime, float speed = MAX_SPEED){
+float * Drive::encoderReading(unsigned long *lastTime, float speed = MAX_SPEED, float encoderReadings[2]){
   float radius = 0.2075;
   int pulse_read_left = 0;
   int pulse_read_right = 0;
@@ -248,9 +248,10 @@ float * Drive::encoderReading(unsigned long *lastTime, float speed = MAX_SPEED){
     distance_right = totalSeconds * measured_rpm_right * (2 * PI * radius);
   }
 
-  static float encoderReadings[2] = {distance_left, distance_right};
+  encoderReadings[0] = distance_left;
+  encoderReadings[1] = distance_right;
 
-  return encoderReadings;
+  return;
 }
 
 /*

@@ -52,7 +52,7 @@ class Drive {
     void turn_left(float speed = MAX_SPEED);
     void reverse();
     void cruise(float speed = MAX_SPEED, bool fwd = true);
-    float * encoderReading(unsigned long* lastTime, float speed = MAX_SPEED);
+    float * encoderReading(unsigned long* lastTime, float speed = MAX_SPEED, float encoderReadings[2]);
     void get_params(float* curr_speed, int* curr_rpm, int* mode);
   
   private:
