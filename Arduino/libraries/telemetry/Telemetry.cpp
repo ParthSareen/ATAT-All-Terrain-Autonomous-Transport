@@ -24,7 +24,7 @@ bool Telemetry::uploadUltrasonic(float us_front, float us_left, float us_back) {
       ultrasonic_event.tel_us.us_left = us_left;
       ultrasonic_event.tel_us.us_back = us_back;
       ultrasonic_event.has_tel_us = true;
-      return _uploadEvent(ultrasonic_event);
+      return _uploadEvent(&ultrasonic_event);
 
 }
 
@@ -37,7 +37,7 @@ bool Telemetry::uploadImuAccel(float accel_x, float accel_y, float accel_z) {
     imu_accel_event.tel_acc.accel_y = accel_y;
     imu_accel_event.tel_acc.accel_z = accel_x;
 
-    return _uploadEvent(imu_accel_event);
+    return _uploadEvent(&imu_accel_event);
 }
 
 bool Telemetry::uploadImuGyro(float gyro_x, float gyro_y, float gyro_z) {
@@ -49,7 +49,7 @@ bool Telemetry::uploadImuGyro(float gyro_x, float gyro_y, float gyro_z) {
     imu_gryo_event.tel_gyro.gyro_y = gyro_y;
     imu_gryo_event.tel_gyro.gyro_z = gyro_z;
 
-    return _uploadEvent(imu_gryo_event);
+    return _uploadEvent(&imu_gryo_event);
 }
 
 bool Telemetry::uploadOrientation(int orientation) {
@@ -66,19 +66,62 @@ bool Telemetry::uploadOrientation(int orientation) {
     robot_orientation_event.tel_cmd = pb_TelemetryEvent_Telemetry_Command_CMD_ORIENTATION;
     robot_orientation_event.tel_orientation.orientation = pb_orientation;
 
-    return _uploadEvent(robot_orientation_event);
+    return _uploadEvent(&robot_orientation_event);
 }
 
+bool Telemetry::uploadShutdownStatus(bool shutdown_status) {
+    pb_TelemetryEvent shutdown_status_event = pb_TelemetryEvent_init_zero;
 
+    shutdown_status_event.improper_shutdown = shutdown_status;
+    shutdown_status_event.tel_cmd = pb_TelemetryEvent_Telemetry_Command_CMD_SHUTDOWN;
 
-bool Telemetry::_uploadEvent(pb_TelemetryEvent event){
+    return _uploadEvent(&shutdown_status);
+}
+
+bool Telemetry::uploadEncoder(float left_encoder, float right_encoder) {
+    pb_TelemetryEvent encoder_event = pb_TelemetryEvent_init_zero;
+
+    encoder_event.has_tel_enc = true;
+    encoder_event.tel_cmd = pb_TelemetryEvent_Telemetry_Command_CMD_ENCODER;
+    encoder_event.tel_enc.leftMotor = left_encoder;
+    encoder_event.tel_enc.rightMotor = right_encoder;
+
+    return _uploadEvent(&encoder_event);
+}
+
+bool Telemetry::uploadLocation(uint32_t cols, uint32_t rows, int32_t [][]data) {
+    pb_TelemetryEvent location_event = pb_TelemetryEvent_init_zero;
+
+    location_event.has_tel_loc = true;
+    location_event.tel_loc.cols = cols;
+    location_event.tel_loc.rows = rows;
+    // TODO: Fix
+    location_event.tel_loc.data = data;
+    return false;
+    // return _uploadEvent(&location_event);
+}
+
+bool Telemetry::uploadSpeed(int speed) {
+    if (speed > 3 || speed < 0) {
+        return false;
+    }
+    
+    pb_TelemetryEvent speed_event = pb_TelemetryEvent_init_zero;
+    
+    pb_TelemetryEvent_Motor_Speed pb_speed = static_cast<pb_TelemetryEvent_Motor_Speed>(speed);
+    speed_event.has_tel_motor_speed = true;
+    speed_event.tel_motor_speed.motorSpeed = pb_speed;
+
+    return _uploadEvent(&speed_event);
+    
+}
+
+bool Telemetry::_uploadEvent(pb_TelemetryEvent* event){
     // TODO: Refactor size to private const
+    // TODO: Make this non-blocking code, fault tolerant
     uint8_t buffer[128];
     uint8_t readBuffer[128];
     pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
-    // Serial.print("left");
-    // Serial.println(event.tel_us.us_left);
-    // bool encode_status = pb_encode(&stream, pb_TelemetryEvent_fields, &event);
 
     if (!pb_encode(&stream, pb_TelemetryEvent_fields, &event)){
         Serial.println("failed to encode proto");

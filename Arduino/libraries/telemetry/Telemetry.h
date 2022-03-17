@@ -20,12 +20,14 @@ class Telemetry {
         bool uploadImuAccel(float accel_x, float accel_y, float accel_z);
         bool uploadImuGyro(float gyro_x, float gyro_y, float gyro_z);
         
-        bool uploadEncoder();
-        bool uploadLocation();
-        bool uploadSpeed();
+        bool uploadEncoder(float left_encoder, float right_encoder);
+        bool uploadLocation(uint32_t cols, uint32_t rows, int32_t [][]data);
+        bool uploadSpeed(int speed);
         // Make sure enum mappings correlate with protobuf
         bool uploadOrientation(int orientation);
-        bool uploadShutdownStatus();
+        bool uploadShutdownStatus(bool shutdown_status);
+
+        bool getBackupData();
 
     private:
         int _waitDelay;
