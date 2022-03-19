@@ -1,10 +1,10 @@
 #include <drive.h>
 
 //Initializing Pin
-const int ML_PWM_PIN = 11;
-const int ML_DIR_PIN = 8;
-const int MR_PWM_PIN = 10;
-const int MR_DIR_PIN = 7;
+const int ML_PWM_PIN = D3;
+const int ML_DIR_PIN = D4;
+const int MR_PWM_PIN = D6;
+const int MR_DIR_PIN = D7;
 
 int set = 0;
 
