@@ -7,6 +7,16 @@
 #include "Adafruit_ICM20948.h"
 #include "Adafruit_Sensor.h"
 #include "drive.h" 
+
+#include <telemetry.pb.h>
+#include <ESP8266WiFi.h>
+//#include <ESP8266HTTPClient.h>
+#include <pb.h>
+#include <pb_common.h>
+#include <pb_decode.h>
+#include <pb_encode.h>
+#include <Telemetry.h>
+
 #define NUM_US 2
 #define NUM_SENS 6
 
@@ -30,13 +40,39 @@ Drive motor_control(PWM_PIN_LEFT, PWM_PIN_RIGHT, DIR_PIN_LEFT, DIR_PIN_RIGHT);
 float ultrasonicArrayVals[10] = {0}; 
 float us_array[NUM_US] = {0, 0};
 float imu_array[NUM_SENS] = {0, 0, 0, 0, 0, 0};
+char ssid[] = "TP-LINK_2.4GHz_677647";    //  your network SSID (name) 
+char pass[] = "98238316";   // your network password
+uint16_t port  = 10101;
+char* addr = "192.168.0.101";
+WiFiClient  client;
+
+Telemetry telemetry(1000, &client, addr, port);
 
 void setup() {
-//  Wire.begin(); 
+  Wire.begin(); 
   Serial.begin(115200); 
   ATAT.ultrasonicSetup(D0, D1, D2);
   // put your setup code here, to run once:
 
+//  Serial.begin(115200);
+//  Serial.println();
+//  Serial.print("Setting up WIFI for SSID ");
+//  Serial.println(ssid);
+//
+//  WiFi.mode(WIFI_STA);
+//  WiFi.begin(ssid, pass);
+//
+//  while (WiFi.status() != WL_CONNECTED) {
+//    Serial.println("WIFI connection failed, reconnecting...");
+//    delay(500);
+//  }
+//
+//  Serial.println("");
+//  Serial.print("WiFi connected, ");
+//  Serial.print("IP address: ");
+//  Serial.println(WiFi.localIP());
+//
+//  Serial.println("Running Telemetry Tests");
 }
 
 void loop() {
@@ -81,6 +117,10 @@ void loop() {
 //    Serial.println(ultrasonicReadings[1]);
 //    delay(100);
 //  }
+//  delay(1000);
+  
+
+
   ATAT.readICM(&icm, imuReadings);
   for(int i = 0; i < NUM_SENS; i++){ 
     Serial.println(imuReadings[i]);
