@@ -7,16 +7,6 @@
 #include "Adafruit_ICM20948.h"
 #include "Adafruit_Sensor.h"
 #include "drive.h" 
-
-#include <telemetry.pb.h>
-#include <ESP8266WiFi.h>
-//#include <ESP8266HTTPClient.h>
-#include <pb.h>
-#include <pb_common.h>
-#include <pb_decode.h>
-#include <pb_encode.h>
-#include <Telemetry.h>
-
 #define NUM_US 2
 #define NUM_SENS 6
 
