@@ -1,24 +1,35 @@
 #include "sensors.h"
 #include "Arduino.h"
-#include "sensors.h"
 #include "MPU6050.h"
 #include "HCSR04.h"
 #include "Wire.h"
 #include "Adafruit_ICM20X.h"
 #include "Adafruit_ICM20948.h"
 #include "Adafruit_Sensor.h"
+#include "drive.h" 
 #define NUM_US 2
 #define NUM_SENS 6
-//#define trig_pin 7
+
+
+#define PWM_PIN_LEFT D3
+#define PWM_PIN_RIGHT D6
+#define DIR_PIN_LEFT D4
+#define DIR_PIN_RIGHT D7
+#define ENC_PIN_LEFT D5
+#define ENC_PIN_RIGHT D8
+
 Adafruit_ICM20948 icm;
 
-int *ea = new int[NUM_US]{D6, D7}; 
+int *ea = new int[NUM_US]{D1, D2}; 
 HCSR04 hc(D5, ea, NUM_US); 
-int echo_array[3] = {8,9,10};
-Sensors ATAT(7, echo_array, 2);
+int echo_array[2] = {D1,D2};
+Sensors ATAT(D0, echo_array, 2);
 long duration;
 int distance;
-//Setting up Ultrasonic and IMU
+//Setting up Ultrasonic and IMU and motor
+Drive motor_control(PWM_PIN_LEFT, PWM_PIN_RIGHT, DIR_PIN_LEFT, DIR_PIN_RIGHT); 
+
+float ultrasonicArrayVals[10] = {0};
 
 int track[6][6] = {  {0, 0, 0, 0, 0, 0}, 
                      {0, 0, 0, 0, 0, 0},
@@ -75,6 +86,28 @@ bool sensorDiagnostic(){
 //  }
 }
 
+void moveForward(){ 
+  motor_control.cruise(MAX_SPEED, true); 
+}
+
+void test(float ultrasonicReadings[3]){ 
+  Serial.println("Testing moving forward ===>"); 
+  motor_control.cruise(MAX_SPEED, true); 
+  if(ultrasonicReadings[0] < 50){ 
+    motor_control.deccelerate(1, true); 
+    motor_control.estop(); 
+  }
+  delay(2000); 
+  motor_control.turn_right(1); 
+  delay(2000);
+  motor_control.accelerate(1, true); 
+  if(ultrasonicReadings[0] < 50){ 
+    motor_control.deccelerate(1, true); 
+    motor_control.estop(); 
+  }
+  motor_control.estop(); 
+}
+
 void setup() {
   Wire.begin();
   Serial.begin(115200);
@@ -89,7 +122,7 @@ void setup() {
   Serial.println("with Arduino UNO R3");
 
   Serial.println("Calibrating ICM");
-  ATAT.calibrateUltrasonic(6, &hc); 
+  //ATAT.calibrateUltrasonic(6, &hc); 
   //ATAT.calibrateICM(&icm);
   Serial.println("Ultrasonic Stuff");
   //Pin setup 
@@ -108,24 +141,41 @@ void setup() {
 }
 
 void loop() { 
+  delay(2000);
 //  bool status = ATAT.calibrateUltrasonic(5, hc);
   float * ultrasonicReadings = new float[NUM_US]; 
   float * imuReadings = new float[NUM_SENS];
-   ATAT.readUltrasonic(&hc, ultrasonicReadings); 
-   for(int i = 0; i < NUM_US; i++){ 
-     Serial.println(ultrasonicReadings[i]); 
-  }
-
-
-//  ATAT.readICM(&icm, imuReadings);
-//  for(int i = 0; i < NUM_SENS; i++){ 
-//    Serial.println(imuReadings[i]);
+//  ATAT.readUltrasonic(&hc, ultrasonicReadings); 
+//  for(int i = 0; i < NUM_US; i++){ 
+//   Serial.println(ultrasonicReadings[i]); 
 //  }
+  Serial.println("Moving foward"); 
+  moveForward(); 
+  delay(4000); 
+  Serial.println("Done function"); 
+
+  ATAT.readICM(&icm, imuReadings);
+  for(int i = 0; i < NUM_SENS; i++){ 
+    Serial.println(imuReadings[i]);
+  }
   ultrasonicReadings = NULL;
   imuReadings = NULL;
   delete[] imuReadings;
   delete[] ultrasonicReadings; 
   delay(1000);
+  motor_control.estop(); 
+  while(1){ 
+    ATAT.readICM(&icm, imuReadings);
+    for(int i = 0; i < NUM_SENS; i++){ 
+      Serial.println(imuReadings[i]);
+    }
+//    ATAT.readUltrasonic(&hc, ultrasonicReadings); 
+//    Serial.println("In while loop"); 
+//    for(int i = 0; i < NUM_US; i++){ 
+//     Serial.println(ultrasonicReadings[i]); 
+//    }
+    delay(3000); 
+  }
   //Serial.println(status);
   
 }
