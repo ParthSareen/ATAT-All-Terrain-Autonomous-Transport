@@ -36,6 +36,7 @@ class Telemetry {
         uint16_t _port  = 10101;
         // char* _addr = "192.168.0.101";
         char* _addr = "172.20.10.7";
+        bool _retry_connection;
 
         WiFiClient* _client;
 
