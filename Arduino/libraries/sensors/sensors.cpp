@@ -14,9 +14,9 @@
 #define ICM_MOSI 11
 // ============== Public Methods ==============
 
-Sensors::Sensors(int trig_pin, int echo_pin[3], int num_sensors){
-  _trig_pin = trig_pin;
-  _echo_pin = echo_pin;
+Sensors::Sensors(int num_sensors){
+  // _trig_pin = trig_pin;
+  // _echo_pin = echo_pin;
   _num_sensors = num_sensors;
 }
 
@@ -257,14 +257,54 @@ int * Sensors::calibrateIMU(MPU6050 accelgyro){
 * Returns: Integer Array of Ultrasonic Values
 */
 
-void Sensors::readUltrasonic(HCSR04 *hc, float usReadings[3]){
+void Sensors::readUltrasonic(HCSR04 *hc, float usReadings[2]){
   Serial.println("==> Reading Ultrasonic Sensor");
   // static float ultrasonicReadings[3];
   // float* ultrasonicReadings = new float[3];
   for (int i = 0; i < _num_sensors; i++){
-    usReadings[i] = hc->dist(i);
+    float val = hc->dist(i);
+    Serial.print("hello from inside: ");
+    Serial.println(val);
+    usReadings[i] = val;
   }
   return;
+}
+
+void Sensors::ultrasonicSetup(int trig_pin, int echo_pin_front, int echo_pin_left){
+  // TODO: Refactor
+  pinMode(trig_pin, OUTPUT); // Sets the trigPin as an OUTPUT
+  pinMode(echo_pin_left, INPUT);
+  pinMode(echo_pin_front, INPUT);
+  _trig_pin = trig_pin;
+  _echo_pin_left = echo_pin_left;
+  _echo_pin_front = echo_pin_front;
+}
+
+void Sensors::readUltrasonicBetter(float usReadings[2]){
+  // TODO cleanup
+  // US Front
+  digitalWrite(_trig_pin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(_trig_pin, HIGH);
+  delayMicroseconds(10);
+  float duration_front = pulseIn(_echo_pin_front, HIGH);
+  float distance_front = duration_front *0.034/2;
+  // Serial.print("Front: ");
+  // Serial.println(distance_front);
+  usReadings[0] = distance_front;
+
+  delay(20);
+
+  // US Left
+  digitalWrite(_trig_pin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(_trig_pin, HIGH);
+  delayMicroseconds(10);
+  float duration_left = pulseIn(_echo_pin_left, HIGH);
+  float distance_left = duration_left*0.034/2;
+  // Serial.print("Left: ");
+  // Serial.println(distance_left);
+  usReadings[1] = distance_left;
 }
 
 /**
