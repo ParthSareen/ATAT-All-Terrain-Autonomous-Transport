@@ -23,10 +23,8 @@
 #define FRONT_US_DIST 7.63
 #define TILE_LENGTH 30.5
 Adafruit_ICM20948 icm;
-
-HCSR04 hc(D5, ea, NUM_US); 
-int echo_array[2] = {D1,D2};
-Sensors ATAT(D0, echo_array, 2);
+ 
+Sensors ATAT(2);
 long duration;
 int distance;
 //Setting up Ultrasonic and IMU and motor
@@ -54,7 +52,6 @@ int distanceTrack[6][6] = {  {0, 0, 0, 0, 0, 0},
                      {7.63, 38.13, 68.63, 99.13, -1, -1}
                    };
 
-float leftArray = { 99.13, 68.63, 38.13, 7.63, 180}
 //start pos is [5][3]; 
 //Left or right implies y stays same 
 //up or down implies other var stays same 
@@ -126,14 +123,15 @@ void setup() {
 //  pinMode(trig_pin, OUTPUT); // Sets the trigPin as an OUTPUT
   Serial.println("Ultrasonic Sensor HC-SR04 Test"); // print some text in Serial Monitor
   Serial.println("with Arduino UNO R3");
-
+  ATAT.ultrasonicSetup(D0, D1, D2); 
   Serial.println("Calibrating ICM");
   //ATAT.calibrateUltrasonic(6, &hc); 
   //ATAT.calibrateICM(&icm);
   Serial.println("Ultrasonic Stuff");
+  delay(5000);
 }
 
-void loop() { 
+void loop() {
   float * ultrasonicReadings = new float[NUM_US]; 
   //float * imuReadings = new float[NUM_SENS];
   //take 10 readings find average 
@@ -149,16 +147,21 @@ void loop() {
   ultrasonicAverageFront = ultrasonicReadings[0]; 
   ultrasonicAverageLeft = ultrasonicReadings[1]; 
   
-  
+  Serial.println(ultrasonicAverageFront); 
+  Serial.println(ultrasonicAverageLeft);
   if(orientation == LEFT){  
     //index check 
-    if(current_position[1]-1 >= 0){ 
       //Check if current pos is visited, check if next pos in orientation is unvisited, check if ultrasonics are reading greater than half a tile 
-      if(track[current_position[0]][current_position[1]] == 1 && track[current_position[0]][current_position[1]-1] == 0 && (ultrasonicAverageFront > ((FRONT_US_DIST + TILE_LENGTH/2)+changeOrientationLeft*TILE_LENGTH))){
+    if(track[current_position[0]][current_position[1]] == 1 && track[current_position[0]][current_position[1]-1] == 0 && (ultrasonicAverageFront > ((FRONT_US_DIST + TILE_LENGTH/2)+changeOrientationLeft*TILE_LENGTH)) || ultrasonicAverageFront == 0){
+//         Serial.println(ultrasonicAverageFront); 
+//         Serial.println(ultrasonicAverageLeft); 
+         Serial.println("inside if");
          motor_control.cruise(HALF_SPEED, 1); 
          //track[current_position[0]][current_position[1]-1] = 1; 
-      }
     } else { 
+//      Serial.println(ultrasonicAverageFront); 
+//      Serial.println(ultrasonicAverageLeft);
+      Serial.println("move into else"); 
       motor_control.estop();
       orientation = UP; 
       changeOrientationLeft++;
@@ -184,10 +187,8 @@ void loop() {
     }
   }
   else if(orientation == UP){ 
-    if(current_position[0]-1 >= 0){ 
       if(track[current_position[0]][current_position[1]] == 1 && track[current_position[0]-1][current_position[1]] == 0 &&  (ultrasonicAverageFront > ((FRONT_US_DIST + TILE_LENGTH/2)+changeOrientationUp*TILE_LENGTH))){
         motor_control.cruise(HALF_SPEED, 1);
-      }
     } else { 
       motor_control.estop();
       orientation = RIGHT; 
@@ -202,13 +203,13 @@ void loop() {
       motor_control.estop();
       int x = current_position[1];
       for(int i = current_position[0]; i >= 0; i--){ 
-        if(track[y][i] == 1){ 
-          current_position[0] = y; 
+        if(track[i][x] == 1){ 
+          current_position[0] = x; 
           current_position[1] = i+1; 
           break;
         }
         else { 
-          track[y][i] = 1; 
+          track[i][x] = 1; 
         }
       }
     }
@@ -224,33 +225,33 @@ void loop() {
 //  for(int i = 0; i < NUM_US; i++){ 
 //   Serial.println(ultrasonicReadings[i]); 
 //  }
-  Serial.println("Moving foward"); 
-  moveForward(); 
-  delay(4000); 
-  Serial.println("Done function"); 
+//  Serial.println("Moving foward"); 
+//  //moveForward(); 
+//  //delay(4000); 
+//  Serial.println("Done function"); 
 
   //ATAT.readICM(&icm, imuReadings);
-  for(int i = 0; i < NUM_SENS; i++){ 
-    Serial.println(imuReadings[i]);
-  }
+//  for(int i = 0; i < NUM_SENS; i++){ 
+//    Serial.println(imuReadings[i]);
+//  }
   ultrasonicReadings = NULL;
-  imuReadings = NULL;
+  //imuReadings = NULL;
   //delete[] imuReadings;
   delete[] ultrasonicReadings; 
-  delay(1000);
-  motor_control.estop(); 
-  while(1){ 
-    ATAT.readICM(&icm, imuReadings);
-    for(int i = 0; i < NUM_SENS; i++){ 
-      Serial.println(imuReadings[i]);
-    }
-//    ATAT.readUltrasonic(&hc, ultrasonicReadings); 
-//    Serial.println("In while loop"); 
-//    for(int i = 0; i < NUM_US; i++){ 
-//     Serial.println(ultrasonicReadings[i]); 
+  //delay(1000);
+  //motor_control.estop(); 
+//  while(1){ 
+//    ATAT.readICM(&icm, imuReadings);
+//    for(int i = 0; i < NUM_SENS; i++){ 
+//      Serial.println(imuReadings[i]);
 //    }
-    delay(3000); 
-  }
+////    ATAT.readUltrasonic(&hc, ultrasonicReadings); 
+////    Serial.println("In while loop"); 
+////    for(int i = 0; i < NUM_US; i++){ 
+////     Serial.println(ultrasonicReadings[i]); 
+////    }
+//    delay(3000); 
+//  }
   //Serial.println(status);
   
 }

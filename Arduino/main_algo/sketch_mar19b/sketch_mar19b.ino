@@ -24,21 +24,26 @@
 #define TILE_LENGTH 30.5
 Adafruit_ICM20948 icm;
 
-HCSR04 hc(D5, ea, NUM_US); 
+//HCSR04 hc(D5, ea, NUM_US); 
 int echo_array[2] = {D1,D2};
-Sensors ATAT(D0, echo_array, 2);
+//Sensors ATAT(D0, echo_array, 2);
 long duration;
 int distance;
 //Setting up Ultrasonic and IMU and motor
 Drive motor_control(PWM_PIN_LEFT, PWM_PIN_RIGHT, DIR_PIN_LEFT, DIR_PIN_RIGHT); 
 void setup(){
-
+  Serial.begin(115200);
+  
 }
 
 void loop(){ 
-    delay(10000);
-    motor_control.turn_right(MAX_SPEED);
+    Serial.println("Waiting 5 sec"); 
     delay(5000);
+    Serial.println("He about to turn 90 deg boiiii");
+    motor_control.cruise(MAX_SPEED, 1);
+    delay(1000);
+    Serial.println("Overshoot time be like");
     motor_control.estop();
-    delay(1000000);
+    Serial.println("Mf has stfu"); 
+    delay(10000);
 }
