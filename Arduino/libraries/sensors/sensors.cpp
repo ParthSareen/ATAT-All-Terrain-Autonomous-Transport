@@ -17,6 +17,11 @@
 #define ICM_MOSI 11
 // ============== Public Methods ==============
 
+
+//front tof is first row 
+//left tof is second row 
+//imu is third row 
+
 Sensors::Sensors(int num_sensors){
     // _trig_pin = trig_pin;
     // _echo_pin = echo_pin;
@@ -72,7 +77,7 @@ void Sensors::setupTOFs(DFRobot_I2CMultiplexer* i2c_switcher, Adafruit_VL53L0X* 
         Serial.println("L0X 1 Failed to boot");
     }
 
-    _i2c_switcher->selectPort(2);
+    _i2c_switcher->selectPort(1);
     if (!_lox->begin()) {
         Serial.println("L0X 1 Failed to boot");
     }
@@ -93,7 +98,7 @@ void Sensors::readTOFs(float tof_readings[2], bool debug) {
         tof_readings[0] = -2;
     }
 
-    _i2c_switcher->selectPort(2);
+    _i2c_switcher->selectPort(1);
     _lox->rangingTest(&measure, debug);
 
     if(measure.RangeStatus != 4) {
@@ -105,8 +110,7 @@ void Sensors::readTOFs(float tof_readings[2], bool debug) {
 }
 
 void Sensors::calibrateICM(Adafruit_ICM20948* icm) {
-    while (!Serial)
-        delay(10); // will pause Zero, Leonardo, etc until serial console opens
+    _i2c_switcher->selectPort(2);
     //   Wire.begin(D1,D2);
     Serial.println("Adafruit ICM20948 test!");
     // Try to initialize!
@@ -162,6 +166,7 @@ void Sensors::calibrateICM(Adafruit_ICM20948* icm) {
 }
 
 void Sensors::readICM(Adafruit_ICM20948* icm, float icmReadings[6]){
+    _i2c_switcher->selectPort(2);
     Serial.println("==> Reading IMU Sensor");
     sensors_event_t accel;
     sensors_event_t gyro;
@@ -176,3 +181,4 @@ void Sensors::readICM(Adafruit_ICM20948* icm, float icmReadings[6]){
     icmReadings[5] = gyro.gyro.z;
     return;
 }
+
