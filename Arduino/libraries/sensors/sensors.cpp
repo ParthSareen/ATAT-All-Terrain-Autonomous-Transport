@@ -7,6 +7,8 @@
 #include "Adafruit_ICM20X.h"
 #include "Adafruit_ICM20948.h"
 #include "Adafruit_Sensor.h"
+#include "DFRobot_I2CMultiplexer.h"
+#include "Adafruit_VL53L0X.h"
 
 #define OUTPUT_READABLE_ACCELGYRO
 #define ICM_CS 10
@@ -21,36 +23,6 @@ Sensors::Sensors(int num_sensors){
     _num_sensors = num_sensors;
 }
 
-/*
-* Calibrating Ultrasonic Sensor
-* Function: Reads 10 sensor readings and averages - then check to see if it fits in tolerance
-* Returns: Bool of within tolerance or not
-*/
-bool Sensors::calibrateUltrasonic(int num_readings, HCSR04 hc){
-    Serial.println("==> Calibrating Ultrasonic");
-    float averages[3];
-    bool status;
-
-    // Read each sensor a certain number of times and find the average
-    for (int i = 0; i < num_readings; i++){
-        for (int j = 0; j < 3; j++){
-            Serial.println(hc.dist(j));
-            averages[j] = hc.dist(j) + averages[j];
-        }
-    }
-
-    for (int i = 0; i < 3; i++){
-        averages[i] = averages[i]/num_readings;
-        Serial.println(averages[i]);
-        delay(60);
-        if ((averages[i] < 4.5) || (averages[i] > 5.5))
-            return false;
-        Serial.println("Calibration failed");
-    }
-
-    Serial.println("Calibration Success");
-    return true;
-}
 
 void Sensors::ultrasonicSetup(int trig_pin, int echo_pin_front, int echo_pin_left){
     // TODO: Refactor
@@ -62,7 +34,7 @@ void Sensors::ultrasonicSetup(int trig_pin, int echo_pin_front, int echo_pin_lef
     _echo_pin_front = echo_pin_front;
 }
 
-void Sensors::readUltrasonicBetter(float usReadings[2]){
+void Sensors::readUltrasonicBetter(float us_readings[2]){
     // TODO cleanup
     // US Front
     digitalWrite(_trig_pin, LOW);
@@ -73,7 +45,7 @@ void Sensors::readUltrasonicBetter(float usReadings[2]){
     float distance_front = duration_front *0.034/2;
     // Serial.print("Front: ");
     // Serial.println(distance_front);
-    usReadings[0] = distance_front;
+    us_readings[0] = distance_front;
 
     delay(20);
 
@@ -86,7 +58,50 @@ void Sensors::readUltrasonicBetter(float usReadings[2]){
     float distance_left = duration_left*0.034/2;
     // Serial.print("Left: ");
     // Serial.println(distance_left);
-    usReadings[1] = distance_left;
+    us_readings[1] = distance_left;
+}
+
+void Sensors::setupTOFs(DFRobot_I2CMultiplexer* i2c_switcher, Adafruit_VL53L0X* lox) {
+    _i2c_switcher = i2c_switcher;
+    _lox = lox;
+    
+    // Currently hard coded ports
+    // TODO: Switch to configurable ports
+    _i2c_switcher->selectPort(0);
+    if (!_lox->begin()) {
+        Serial.println("L0X 1 Failed to boot");
+    }
+
+    _i2c_switcher->selectPort(2);
+    if (!_lox->begin()) {
+        Serial.println("L0X 1 Failed to boot");
+    }
+
+}
+
+void Sensors::readTOFs(float tof_readings[2], bool debug) {
+    // ngl this is not bad code but it's ugly af
+    VL53L0X_RangingMeasurementData_t measure;
+
+    _i2c_switcher->selectPort(0);
+    _lox->rangingTest(&measure, debug);
+
+    if(measure.RangeStatus != 4) {
+        tof_readings[0] = measure.RangeMilliMeter;
+    }
+    else {
+        tof_readings[0] = -2;
+    }
+
+    _i2c_switcher->selectPort(2);
+    _lox->rangingTest(&measure, debug);
+
+    if(measure.RangeStatus != 4) {
+        tof_readings[1] = measure.RangeMilliMeter;
+    }
+    else {
+        tof_readings[1] = -2;
+    }
 }
 
 void Sensors::calibrateICM(Adafruit_ICM20948* icm) {
