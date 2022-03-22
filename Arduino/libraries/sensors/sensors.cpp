@@ -1,3 +1,4 @@
+
 #include "sensors.h"
 #include "I2Cdev.h"
 #include "MPU6050.h"
@@ -6,6 +7,8 @@
 #include "Adafruit_ICM20X.h"
 #include "Adafruit_ICM20948.h"
 #include "Adafruit_Sensor.h"
+#include "DFRobot_I2CMultiplexer.h"
+#include "Adafruit_VL53L0X.h"
 
 #define OUTPUT_READABLE_ACCELGYRO
 #define ICM_CS 10
@@ -15,406 +18,161 @@
 // ============== Public Methods ==============
 
 Sensors::Sensors(int num_sensors){
-  // _trig_pin = trig_pin;
-  // _echo_pin = echo_pin;
-  _num_sensors = num_sensors;
+    // _trig_pin = trig_pin;
+    // _echo_pin = echo_pin;
+    _num_sensors = num_sensors;
 }
 
-/*
-* Calibrating Ultrasonic Sensor
-* Function: Reads 10 sensor readings and averages - then check to see if it fits in tolerance
-* Returns: Bool of within tolerance or not
-*/
-bool Sensors::calibrateUltrasonic(int num_readings, HCSR04 hc){
-  Serial.println("==> Calibrating Ultrasonic");
-  float averages[3];
-  bool status;
-
-  // Read each sensor a certain number of times and find the average
-  for (int i = 0; i < num_readings; i++){
-  	for (int j = 0; j < 3; j++){
-  		Serial.println(hc.dist(j));
-  		averages[j] = hc.dist(j) + averages[j];
-	}
-  }
-    
-  for (int i = 0; i < 3; i++){
-  	averages[i] = averages[i]/num_readings;
-  	Serial.println(averages[i]);
-  	delay(60); 
-    if ((averages[i] < 4.5) || (averages[i] > 5.5))
-      return false;
-      Serial.println("Calibration failed");
-  }
-
-  Serial.println("Calibration Success");
-  return true;
-}
-
-float checkDeadbandValue (float val, float minVal)
-// return value with deadband
-{
-  float curVal = val;
-  if (val < minVal and val > -minVal)
-  {
-    curVal = 0;
-  }
-  return curVal;
-}
-
-
-
-/**
-* Calibrating IMU
-* Function: Calibrates IMU
-* Returns: Integer Array of Offsets for Accelero/Gyro
-*/
-int * Sensors::calibrateIMU(MPU6050 accelgyro){
-  Serial.println("==> Calibrating IMU");
-  ///////////////////////////////////   CONFIGURATION   /////////////////////////////
-  //Change this 3 variables if you want to fine tune the skecth to your needs.
-  int buffersize=1000;     //Amount of readings used to average, make it higher to get more precision but sketch will be slower  (default:1000)
-  int acel_deadzone=8;     //Acelerometer error allowed, make it lower to get more precision, but sketch may not converge  (default:8)
-  int giro_deadzone=1;     //Giro error allowed, make it lower to get more precision, but sketch may not converge  (default:1)
-
-  int16_t ax, ay, az,gx, gy, gz;
-
-  int mean_ax,mean_ay,mean_az,mean_gx,mean_gy,mean_gz,state=0;
-  int ax_offset,ay_offset,az_offset,gx_offset,gy_offset,gz_offset;
-  
-  Serial.println("\nYour MPU6050 should be placed in horizontal position, with package letters facing up. \nDon't touch it until you see a finish message.\n");
-  delay(3000);
-  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-  
-  accelgyro.setXAccelOffset(0);
-  accelgyro.setYAccelOffset(0);
-  accelgyro.setZAccelOffset(0);
-  accelgyro.setXGyroOffset(0);
-  accelgyro.setYGyroOffset(0);
-  accelgyro.setZGyroOffset(0);
-
-  if (state==0){
-    Serial.println("\nReading sensors for first time...");
-    long i=0,buff_ax=0,buff_ay=0,buff_az=0,buff_gx=0,buff_gy=0,buff_gz=0;
-    
-    while (i<(buffersize+101)){
-    	// read raw accel/gyro measurements from device
-    	accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-    
-    	if (i>100 && i<=(buffersize+100)){ //First 100 measures are discarded
-      		buff_ax=buff_ax+ax;
-      		buff_ay=buff_ay+ay;
-      		buff_az=buff_az+az;
-      		buff_gx=buff_gx+gx;
-      		buff_gy=buff_gy+gy;
-      		buff_gz=buff_gz+gz;
-    	}
-    	if (i==(buffersize+100)){
-      		mean_ax=buff_ax/buffersize;
-      		mean_ay=buff_ay/buffersize;
-      		mean_az=buff_az/buffersize;
-      		mean_gx=buff_gx/buffersize;
-      		mean_gy=buff_gy/buffersize;
-      		mean_gz=buff_gz/buffersize;
-    	}
-    	i++;
-    	delay(2); //Needed so we don't get repeated measures
-  	}
-  	
-    state++;
-    delay(1000);
-  }
-
-  if (state==1) {
-    Serial.println("\nCalculating offsets...");
-    ax_offset=-mean_ax/8;
-  	ay_offset=-mean_ay/8;
-  	az_offset=(16384-mean_az)/8;
-
-  	gx_offset=-mean_gx/4;
-  	gy_offset=-mean_gy/4;
-  	gz_offset=-mean_gz/4;
-  	while (1){
-    	int ready=0;
-    	accelgyro.setXAccelOffset(ax_offset);
-    	accelgyro.setYAccelOffset(ay_offset);
-    	accelgyro.setZAccelOffset(az_offset);
-
-    	accelgyro.setXGyroOffset(gx_offset);
-    	accelgyro.setYGyroOffset(gy_offset);
-    	accelgyro.setZGyroOffset(gz_offset);
-
-    	long i=0,buff_ax=0,buff_ay=0,buff_az=0,buff_gx=0,buff_gy=0,buff_gz=0;
-
-  		while (i<(buffersize+101)){
-    	// read raw accel/gyro measurements from device
-    		accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-    
-    		if (i>100 && i<=(buffersize+100)){ //First 100 measures are discarded
-      			buff_ax=buff_ax+ax;
-      			buff_ay=buff_ay+ay;
-      			buff_az=buff_az+az;
-      			buff_gx=buff_gx+gx;
-      			buff_gy=buff_gy+gy;
-      			buff_gz=buff_gz+gz;
-    		}
-    		if (i==(buffersize+100)){
-      			mean_ax=buff_ax/buffersize;
-      			mean_ay=buff_ay/buffersize;
-      			mean_az=buff_az/buffersize;
-      			mean_gx=buff_gx/buffersize;
-      			mean_gy=buff_gy/buffersize;
-      			mean_gz=buff_gz/buffersize;
-    		}
-    		i++;
-    		delay(2); //Needed so we don't get repeated measures
-    		Serial.println("...");
-
-    		if (abs(mean_ax)<=acel_deadzone) ready++;
-    		else ax_offset=ax_offset-mean_ax/acel_deadzone;
-
-    		if (abs(mean_ay)<=acel_deadzone) ready++;
-    		else ay_offset=ay_offset-mean_ay/acel_deadzone;
-
-    		if (abs(16384-mean_az)<=acel_deadzone) ready++;
-    		else az_offset=az_offset+(16384-mean_az)/acel_deadzone;
-
-    		if (abs(mean_gx)<=giro_deadzone) ready++;
-		    else gx_offset=gx_offset-mean_gx/(giro_deadzone+1);
-		
-		    if (abs(mean_gy)<=giro_deadzone) ready++;
-		    else gy_offset=gy_offset-mean_gy/(giro_deadzone+1);
-		
-		    if (abs(mean_gz)<=giro_deadzone) ready++;
-		    else gz_offset=gz_offset-mean_gz/(giro_deadzone+1);
-
-    		if (ready==6) break;
-  		}
-    	state++;
-    	delay(1000);
-  	}
-
-  if (state==2) {
-    long i=0,buff_ax=0,buff_ay=0,buff_az=0,buff_gx=0,buff_gy=0,buff_gz=0;
-
-  	while (i<(buffersize+101)){
-    	// read raw accel/gyro measurements from device
-    	accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-    
-    	if (i>100 && i<=(buffersize+100)){ //First 100 measures are discarded
-	      buff_ax=buff_ax+ax;
-	      buff_ay=buff_ay+ay;
-	      buff_az=buff_az+az;
-	      buff_gx=buff_gx+gx;
-	      buff_gy=buff_gy+gy;
-	      buff_gz=buff_gz+gz;
-	    }
-	    if (i==(buffersize+100)){
-	      mean_ax=buff_ax/buffersize;
-	      mean_ay=buff_ay/buffersize;
-	      mean_az=buff_az/buffersize;
-	      mean_gx=buff_gx/buffersize;
-	      mean_gy=buff_gy/buffersize;
-	      mean_gz=buff_gz/buffersize;
-	    }
-	    i++;
-	    delay(2); //Needed so we don't get repeated measures
-	}
-    Serial.println("\nFINISHED!");
-    Serial.print("\nSensor readings with offsets:\t");
-    Serial.print(mean_ax); 
-    Serial.print("\t");
-    Serial.print(mean_ay); 
-    Serial.print("\t");
-    Serial.print(mean_az); 
-    Serial.print("\t");
-    Serial.print(mean_gx); 
-    Serial.print("\t");
-    Serial.print(mean_gy); 
-    Serial.print("\t");
-    Serial.println(mean_gz);
-    Serial.print("Your offsets:\t");
-    Serial.print(ax_offset); 
-    Serial.print("\t");
-    Serial.print(ay_offset); 
-    Serial.print("\t");
-    Serial.print(az_offset); 
-    Serial.print("\t");
-    Serial.print(gx_offset); 
-    Serial.print("\t");
-    Serial.print(gy_offset); 
-    Serial.print("\t");
-    Serial.println(gz_offset); 
-    static int calibrations[6] = {ax_offset, ay_offset, az_offset, gx_offset, gy_offset, gz_offset};
-    return calibrations;
-  }
-}
-}
-
-/**
-* Reading Ultrasonic Sensor
-* Function: Reads Ultrasonic Values
-* Returns: Integer Array of Ultrasonic Values
-*/
-
-void Sensors::readUltrasonic(HCSR04 *hc, float usReadings[2]){
-  Serial.println("==> Reading Ultrasonic Sensor");
-  // static float ultrasonicReadings[3];
-  // float* ultrasonicReadings = new float[3];
-  for (int i = 0; i < _num_sensors; i++){
-    float val = hc->dist(i);
-    Serial.print("hello from inside: ");
-    Serial.println(val);
-    usReadings[i] = val;
-  }
-  return;
-}
 
 void Sensors::ultrasonicSetup(int trig_pin, int echo_pin_front, int echo_pin_left){
-  // TODO: Refactor
-  pinMode(trig_pin, OUTPUT); // Sets the trigPin as an OUTPUT
-  pinMode(echo_pin_left, INPUT);
-  pinMode(echo_pin_front, INPUT);
-  _trig_pin = trig_pin;
-  _echo_pin_left = echo_pin_left;
-  _echo_pin_front = echo_pin_front;
+    // TODO: Refactor
+    pinMode(trig_pin, OUTPUT); // Sets the trigPin as an OUTPUT
+    pinMode(echo_pin_left, INPUT);
+    pinMode(echo_pin_front, INPUT);
+    _trig_pin = trig_pin;
+    _echo_pin_left = echo_pin_left;
+    _echo_pin_front = echo_pin_front;
 }
 
-void Sensors::readUltrasonicBetter(float usReadings[2]){
-  // TODO cleanup
-  // US Front
-  digitalWrite(_trig_pin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(_trig_pin, HIGH);
-  delayMicroseconds(10);
-  float duration_front = pulseIn(_echo_pin_front, HIGH);
-  float distance_front = duration_front *0.034/2;
-  // Serial.print("Front: ");
-  // Serial.println(distance_front);
-  usReadings[0] = distance_front;
+void Sensors::readUltrasonicBetter(float us_readings[2]){
+    // TODO cleanup
+    // US Front
+    digitalWrite(_trig_pin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(_trig_pin, HIGH);
+    delayMicroseconds(10);
+    float duration_front = pulseIn(_echo_pin_front, HIGH);
+    float distance_front = duration_front *0.034/2;
+    // Serial.print("Front: ");
+    // Serial.println(distance_front);
+    us_readings[0] = distance_front;
 
-  delay(20);
+    delay(20);
 
-  // US Left
-  digitalWrite(_trig_pin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(_trig_pin, HIGH);
-  delayMicroseconds(10);
-  float duration_left = pulseIn(_echo_pin_left, HIGH);
-  float distance_left = duration_left*0.034/2;
-  // Serial.print("Left: ");
-  // Serial.println(distance_left);
-  usReadings[1] = distance_left;
+    // US Left
+    digitalWrite(_trig_pin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(_trig_pin, HIGH);
+    delayMicroseconds(10);
+    float duration_left = pulseIn(_echo_pin_left, HIGH);
+    float distance_left = duration_left*0.034/2;
+    // Serial.print("Left: ");
+    // Serial.println(distance_left);
+    us_readings[1] = distance_left;
 }
 
-/**
-* Reading IMU Values
-* Function: Read IMU Values
-* Returns: Array of IMU Values
-*/
-int16_t * Sensors::readIMU(MPU6050 accelgyro){
-    Serial.println("==> Reading IMU");
+void Sensors::setupTOFs(DFRobot_I2CMultiplexer* i2c_switcher, Adafruit_VL53L0X* lox) {
+    _i2c_switcher = i2c_switcher;
+    _lox = lox;
     
-    Serial.println("Initializing I2C devices...");
-    accelgyro.initialize();
+    // Currently hard coded ports
+    // TODO: Switch to configurable ports
+    _i2c_switcher->selectPort(0);
+    if (!_lox->begin()) {
+        Serial.println("L0X 1 Failed to boot");
+    }
 
-    Serial.println("Testing device connections...");
-    Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+    _i2c_switcher->selectPort(2);
+    if (!_lox->begin()) {
+        Serial.println("L0X 1 Failed to boot");
+    }
 
-    int16_t ax, ay, az;
-    int16_t gx, gy, gz;
-    
-    Serial.println("Updating internal sensor offsets...");
-    accelgyro.setXAccelOffset(1416);
-    accelgyro.setYAccelOffset(1414);
-    accelgyro.setZAccelOffset(1446);
-    accelgyro.setXGyroOffset(92);
-    accelgyro.setYGyroOffset(22);
-    accelgyro.setZGyroOffset(76);
-    Serial.println("Updating internal sensor offsets complete...");
+}
 
-    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-    static int16_t IMU_Values[6] = {ax, ay, az, gx, gy, gz};
+void Sensors::readTOFs(float tof_readings[2], bool debug) {
+    // ngl this is not bad code but it's ugly af
+    VL53L0X_RangingMeasurementData_t measure;
 
-    Serial.print(ax); Serial.print("\t");
-    Serial.print(ay); Serial.print("\t");
-    Serial.print(az); Serial.print("\t");
-    Serial.print(gx); Serial.print("\t");
-    Serial.print(gy); Serial.print("\t");
-    Serial.println(gz);
-    delay(1000);
-    return IMU_Values;
+    _i2c_switcher->selectPort(0);
+    _lox->rangingTest(&measure, debug);
+
+    if(measure.RangeStatus != 4) {
+        tof_readings[0] = measure.RangeMilliMeter;
+    }
+    else {
+        tof_readings[0] = -2;
+    }
+
+    _i2c_switcher->selectPort(2);
+    _lox->rangingTest(&measure, debug);
+
+    if(measure.RangeStatus != 4) {
+        tof_readings[1] = measure.RangeMilliMeter;
+    }
+    else {
+        tof_readings[1] = -2;
+    }
 }
 
 void Sensors::calibrateICM(Adafruit_ICM20948* icm) {
-  while (!Serial)
-     delay(10); // will pause Zero, Leonardo, etc until serial console opens
-  //   Wire.begin(D1,D2);
-  Serial.println("Adafruit ICM20948 test!");
-  // Try to initialize!
-  if (!icm->begin_I2C()) {
-    // if (!icm.begin_SPI(ICM_CS)) {
-    // if (!icm.begin_SPI(ICM_CS, ICM_SCK, ICM_MISO, ICM_MOSI)) {
-    Serial.println("Failed to find ICM20948 chip");
-    while (1) {
-      delay(10);
+    while (!Serial)
+        delay(10); // will pause Zero, Leonardo, etc until serial console opens
+    //   Wire.begin(D1,D2);
+    Serial.println("Adafruit ICM20948 test!");
+    // Try to initialize!
+    if (!icm->begin_I2C()) {
+        // if (!icm.begin_SPI(ICM_CS)) {
+        // if (!icm.begin_SPI(ICM_CS, ICM_SCK, ICM_MISO, ICM_MOSI)) {
+        Serial.println("Failed to find ICM20948 chip");
+        while (1) {
+            delay(10);
+        }
     }
-  }
-  Serial.println("ICM20948 Found!");
-  // icm.setAccelRange(ICM20948_ACCEL_RANGE_16_G);
-  Serial.print("Accelerometer range set to: ");
-  switch (icm->getAccelRange()) {
-  case ICM20948_ACCEL_RANGE_2_G:
-    Serial.println("+-2G");
-    break;
-  case ICM20948_ACCEL_RANGE_4_G:
-    Serial.println("+-4G");
-    break;
-  case ICM20948_ACCEL_RANGE_8_G:
-    Serial.println("+-8G");
-    break;
-  case ICM20948_ACCEL_RANGE_16_G:
-    Serial.println("+-16G");
-    break;
-  }
-  Serial.println("OK");
-  // icm.setGyroRange(ICM20948_GYRO_RANGE_2000_DPS);
-  Serial.print("Gyro range set to: ");
-  switch (icm->getGyroRange()) {
-  case ICM20948_GYRO_RANGE_250_DPS:
-    Serial.println("250 degrees/s");
-    break;
-  case ICM20948_GYRO_RANGE_500_DPS:
-    Serial.println("500 degrees/s");
-    break;
-  case ICM20948_GYRO_RANGE_1000_DPS:
-    Serial.println("1000 degrees/s");
-    break;
-  case ICM20948_GYRO_RANGE_2000_DPS:
-    Serial.println("2000 degrees/s");
-    break;
-  }
-  //  icm.setAccelRateDivisor(4095);
-  uint16_t accel_divisor = icm->getAccelRateDivisor();
-  float accel_rate = 1125 / (1.0 + accel_divisor);
-  Serial.print("Accelerometer data rate divisor set to: ");
-  Serial.println(accel_divisor);
-  Serial.print("Accelerometer data rate (Hz) is approximately: ");
-  Serial.println(accel_rate);
+    Serial.println("ICM20948 Found!");
+    // icm.setAccelRange(ICM20948_ACCEL_RANGE_16_G);
+    Serial.print("Accelerometer range set to: ");
+    switch (icm->getAccelRange()) {
+        case ICM20948_ACCEL_RANGE_2_G:
+            Serial.println("+-2G");
+            break;
+        case ICM20948_ACCEL_RANGE_4_G:
+            Serial.println("+-4G");
+            break;
+        case ICM20948_ACCEL_RANGE_8_G:
+            Serial.println("+-8G");
+            break;
+        case ICM20948_ACCEL_RANGE_16_G:
+            Serial.println("+-16G");
+            break;
+    }
+    Serial.println("OK");
+    // icm.setGyroRange(ICM20948_GYRO_RANGE_2000_DPS);
+    Serial.print("Gyro range set to: ");
+    switch (icm->getGyroRange()) {
+        case ICM20948_GYRO_RANGE_250_DPS:
+            Serial.println("250 degrees/s");
+            break;
+        case ICM20948_GYRO_RANGE_500_DPS:
+            Serial.println("500 degrees/s");
+            break;
+        case ICM20948_GYRO_RANGE_1000_DPS:
+            Serial.println("1000 degrees/s");
+            break;
+        case ICM20948_GYRO_RANGE_2000_DPS:
+            Serial.println("2000 degrees/s");
+            break;
+    }
+    //  icm.setAccelRateDivisor(4095);
+    uint16_t accel_divisor = icm->getAccelRateDivisor();
+    float accel_rate = 1125 / (1.0 + accel_divisor);
+    Serial.print("Accelerometer data rate divisor set to: ");
+    Serial.println(accel_divisor);
+    Serial.print("Accelerometer data rate (Hz) is approximately: ");
+    Serial.println(accel_rate);
 }
 
-void Sensors::readICM(Adafruit_ICM20948* icm, float icmReadings[6]){ 
-  Serial.println("==> Reading IMU Sensor");
-  sensors_event_t accel;
-  sensors_event_t gyro;
-  sensors_event_t temp; 
-  sensors_event_t mag; 
-  icm->getEvent(&accel, &gyro, &temp, &mag);
-  icmReadings[0] = accel.acceleration.x; 
-  icmReadings[1] = accel.acceleration.y; 
-  icmReadings[2] = accel.acceleration.z; 
-  icmReadings[3] = gyro.gyro.x;
-  icmReadings[4] = gyro.gyro.y;
-  icmReadings[5] = gyro.gyro.z;
-  return;
+void Sensors::readICM(Adafruit_ICM20948* icm, float icmReadings[6]){
+    Serial.println("==> Reading IMU Sensor");
+    sensors_event_t accel;
+    sensors_event_t gyro;
+    sensors_event_t temp;
+    sensors_event_t mag;
+    icm->getEvent(&accel, &gyro, &temp, &mag);
+    icmReadings[0] = accel.acceleration.x;
+    icmReadings[1] = accel.acceleration.y;
+    icmReadings[2] = accel.acceleration.z;
+    icmReadings[3] = gyro.gyro.x;
+    icmReadings[4] = gyro.gyro.y;
+    icmReadings[5] = gyro.gyro.z;
+    return;
 }

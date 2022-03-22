@@ -109,7 +109,10 @@ bool Telemetry::uploadSpeed(int speed) {
     pb_TelemetryEvent speed_event = pb_TelemetryEvent_init_zero;
     
     pb_TelemetryEvent_Motor_Speed pb_speed = static_cast<pb_TelemetryEvent_Motor_Speed>(speed);
+    Serial.print("casted val ");
+    Serial.println(pb_speed);
     speed_event.has_tel_motor_speed = true;
+    speed_event.tel_cmd = pb_TelemetryEvent_Telemetry_Command_CMD_MOTOR_SPEED;
     speed_event.tel_motor_speed.motorSpeed = pb_speed;
 
     return _uploadEvent(speed_event);
@@ -135,20 +138,20 @@ bool Telemetry::_uploadEvent(pb_TelemetryEvent event){
     // TODO check locking
     while (connect_status == false and retry_count < MAX_RETRY) {
         Serial.println("Connect failed");
+        bool connect_status = _client->connect(_addr, _port);
         retry_count++;
-        delay(100);
+        // delay(15);
     }
 
     // Exit if max reached
-    if (retry_count == MAX_RETRY){
-        Serial.println("Max retry reached");
-        return false;
-    }
+    // if (retry_count == MAX_RETRY){
+    //     Serial.println("Max retry reached");
+    //     return false;
+    // }
     
     _client->write(buffer, stream.bytes_written);
     // client.flush();
-    _client->stop();
-    delay(1000);
+    _client->stop(30);
     // // TODO: refactor to not being blocked and having timeout instead
     // while (_client->available()) {}
     return true;
