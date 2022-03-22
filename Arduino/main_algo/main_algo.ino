@@ -7,6 +7,14 @@
 #include "Adafruit_ICM20948.h"
 #include "Adafruit_Sensor.h"
 #include "drive.h" 
+
+#include <telemetry.pb.h>
+#include <ESP8266WiFi.h>
+#include <pb.h>
+#include <pb_common.h>
+#include <pb_decode.h>
+#include <pb_encode.h>
+#include <Telemetry.h>
 #define NUM_US 2
 #define NUM_SENS 6
 
@@ -23,7 +31,17 @@
 #define FRONT_US_DIST 7.63
 #define TILE_LENGTH 30.5
 Adafruit_ICM20948 icm;
- 
+
+
+char ssid[] = "TP-LINK_2.4GHz_677647";
+char pass[] = "98238316";  
+char* addr = "192.168.0.108";
+uint16_t port  = 10101;
+
+WiFiClient  client;
+
+Telemetry telemetry(1000, &client, addr, port);
+int count = 0;
 Sensors ATAT(2);
 long duration;
 int distance;
@@ -114,6 +132,22 @@ void test(float ultrasonicReadings[3]){
 void setup() {
   Wire.begin();
   Serial.begin(115200);
+  Serial.println();
+  Serial.print("Setting up WIFI for SSID ");
+  Serial.println(ssid);
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, pass);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WIFI connection failed, reconnecting...");
+    delay(500);
+  }
+
+  Serial.println("");
+  Serial.print("WiFi connected, ");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
   // D6, D7, D8
 //  pinMode(D6, INPUT);
 //  pinMode(D7, INPUT);
@@ -149,6 +183,13 @@ void loop() {
   
   Serial.println(ultrasonicAverageFront); 
   Serial.println(ultrasonicAverageLeft);
+  if (count == 5){
+    telemetry.uploadUltrasonic(ultrasonicAverageFront, ultrasonicAverageLeft, 0);
+    count = 0;
+  }
+   else {
+    count++;   
+  }
   if(orientation == LEFT){  
     //index check 
       //Check if current pos is visited, check if next pos in orientation is unvisited, check if ultrasonics are reading greater than half a tile 
@@ -156,7 +197,7 @@ void loop() {
 //         Serial.println(ultrasonicAverageFront); 
 //         Serial.println(ultrasonicAverageLeft); 
          Serial.println("inside if");
-         motor_control.cruise(HALF_SPEED, 1); 
+         motor_control.cruise(MAX_SPEED, 1); 
          //track[current_position[0]][current_position[1]-1] = 1; 
     } else { 
 //      Serial.println(ultrasonicAverageFront); 
@@ -166,7 +207,7 @@ void loop() {
       orientation = UP; 
       changeOrientationLeft++;
       //TODO: Test speed + turning threshold 
-      motor_control.turn_right(HALF_SPEED);
+      motor_control.turn_right(MAX_SPEED);
       while(ultrasonicAverageFront < 83){ 
         ATAT.readUltrasonicBetter(ultrasonicReadings); 
         ultrasonicAverageFront = ultrasonicReadings[0]; 
@@ -188,13 +229,13 @@ void loop() {
   }
   else if(orientation == UP){ 
       if(track[current_position[0]][current_position[1]] == 1 && track[current_position[0]-1][current_position[1]] == 0 &&  (ultrasonicAverageFront > ((FRONT_US_DIST + TILE_LENGTH/2)+changeOrientationUp*TILE_LENGTH))){
-        motor_control.cruise(HALF_SPEED, 1);
+        motor_control.cruise(MAX_SPEED, 1);
     } else { 
       motor_control.estop();
       orientation = RIGHT; 
       changeOrientationUp++;
       //TODO: Test speed + turning threshold 
-      motor_control.turn_right(HALF_SPEED);
+      motor_control.turn_right(MAX_SPEED);
       while(ultrasonicAverageFront < 83){ 
         ATAT.readUltrasonicBetter(ultrasonicReadings); 
         ultrasonicAverageFront = ultrasonicReadings[0]; 
