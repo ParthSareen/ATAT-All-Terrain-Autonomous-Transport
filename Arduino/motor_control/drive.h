@@ -45,13 +45,13 @@ enum motor_spin {
 class Drive {
   public:
     Drive(int pwm_pin_left, int pwm_pin_right, int dir_pin_left, int dir_pin_right);
-    void accelerate(int rate, bool fwd = true);
-    void deccelerate(int rate, bool fwd = true);
+    void accelerate(int rate, bool fwd);
+    void deccelerate(int rate, bool fwd);
     void estop();
-    void turn_right(float speed = MAX_SPEED);
-    void turn_left(float speed = MAX_SPEED);
+    void turn_right(float speed);
+    void turn_left(float speed);
     void reverse();
-    void cruise(float speed = MAX_SPEED, bool fwd = true);
+    void cruise(float speed, bool fwd);
     void get_params(float* curr_speed, unsigned int* curr_rpm, int* mode);
   
   private:
