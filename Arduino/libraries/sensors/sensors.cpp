@@ -7,7 +7,6 @@
 #include "Adafruit_ICM20X.h"
 #include "Adafruit_ICM20948.h"
 #include "Adafruit_Sensor.h"
-#include "DFRobot_I2CMultiplexer.h"
 #include "Adafruit_VL53L0X.h"
 
 #define OUTPUT_READABLE_ACCELGYRO
@@ -66,43 +65,61 @@ void Sensors::readUltrasonicBetter(float us_readings[2]){
     us_readings[1] = distance_left;
 }
 
-void Sensors::setupTOFs(DFRobot_I2CMultiplexer* i2c_switcher, Adafruit_VL53L0X* lox) {
-    _i2c_switcher = i2c_switcher;
-    _lox = lox;
-    
-    // Currently hard coded ports
-    // TODO: Switch to configurable ports
-    _i2c_switcher->selectPort(0);
-    if (!_lox->begin()) {
+void Sensors::_powerCycle(int xshut1, int xshut2) {
+    digitalWrite(xshut1, LOW);
+    digitalWrite(xshut2, LOW);
+    delay(10);
+    digitalWrite(xshut1, HIGH);
+    digitalWrite(xshut2, HIGH);
+    delay(10);
+}
+
+void Sensors::setupTOFs(Adafruit_VL53L0X* lox1, Adafruit_VL53L0X* lox2, int xshut1, int xshut2) {
+    _lox1 = lox1;
+    _lox2 = lox2;
+
+    _powerCycle(xshut1, xshut2);
+    // Set second lox low
+    digitalWrite(xshut2, LOW);
+    // default addr at 0x30
+    if (!_lox1->begin(0x30)) {
         Serial.println("L0X 1 Failed to boot");
+        // Failure if no boot
+        while (1);
     }
 
-    _i2c_switcher->selectPort(1);
-    if (!_lox->begin()) {
-        Serial.println("L0X 1 Failed to boot");
+    digitalWrite(xshut2, HIGH);
+    if (!_lox2->begin()) {
+        Serial.println("L0X 2 Failed to boot");
+        while (1);
     }
 
 }
 
 void Sensors::readTOFs(float tof_readings[2], bool debug) {
-    // ngl this is not bad code but it's ugly af
     VL53L0X_RangingMeasurementData_t measure;
 
-    _i2c_switcher->selectPort(0);
-    _lox->rangingTest(&measure, debug);
+    _lox1->rangingTest(&measure, debug);
 
     if(measure.RangeStatus != 4) {
-        tof_readings[0] = measure.RangeMilliMeter;
+        if(measure.RangeMilliMeter > 1300) {
+            tof_readings[0] = -2;
+        } else {
+            tof_readings[0] = measure.RangeMilliMeter;
+        }
     }
     else {
         tof_readings[0] = -2;
     }
 
-    _i2c_switcher->selectPort(1);
-    _lox->rangingTest(&measure, debug);
+    _lox2->rangingTest(&measure, debug);
 
     if(measure.RangeStatus != 4) {
-        tof_readings[1] = measure.RangeMilliMeter;
+        if(measure.RangeMilliMeter > 1300) {
+            tof_readings[0] = -2;
+        } else {
+            tof_readings[1] = measure.RangeMilliMeter;
+        }
     }
     else {
         tof_readings[1] = -2;
@@ -110,7 +127,6 @@ void Sensors::readTOFs(float tof_readings[2], bool debug) {
 }
 
 void Sensors::calibrateICM(Adafruit_ICM20948* icm) {
-    _i2c_switcher->selectPort(2);
     //   Wire.begin(D1,D2);
     Serial.println("Adafruit ICM20948 test!");
     // Try to initialize!
@@ -166,8 +182,6 @@ void Sensors::calibrateICM(Adafruit_ICM20948* icm) {
 }
 
 void Sensors::readICM(Adafruit_ICM20948* icm, float icmReadings[6]){
-    _i2c_switcher->selectPort(2);
-    Serial.println("==> Reading IMU Sensor");
     sensors_event_t accel;
     sensors_event_t gyro;
     sensors_event_t temp;
