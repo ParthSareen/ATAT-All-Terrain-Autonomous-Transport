@@ -20,8 +20,8 @@ Drive::Drive(int pwm_pin_left, int pwm_pin_right, int dir_pin_left, int dir_pin_
   _mode = STOPPED; 
 
   // Ensure motor is initially stopped
-  analogWrite(_pwm_pin_left, 254);
-  analogWrite(_pwm_pin_right, 254);
+  analogWrite(_pwm_pin_left, 255);
+  analogWrite(_pwm_pin_right, 255);
 }
 
 /**
@@ -58,6 +58,9 @@ void Drive::accelerate(int rate, bool fwd = true){
 		delay(5+50*(1-rate/6)); //vary scalar multiple to adjust minimum acceleration
 	}
 
+	analogWrite(_pwm_pin_left, 0);
+	analogWrite(_pwm_pin_right, 0);
+
 	// Set new speed 
 	_current_speed = MAX_SPEED; 
 	_current_rpm = MAX_RPM; 
@@ -84,7 +87,7 @@ void Drive::deccelerate(int rate, bool fwd = true){
 
 	Serial.println(curr_speed_i);
 
-	for(int i=curr_speed_i; i<250; i++){
+	for(int i=curr_speed_i; i<255; i++){
 
 		analogWrite(_pwm_pin_left, i);
 		analogWrite(_pwm_pin_right, i);
@@ -97,9 +100,12 @@ void Drive::deccelerate(int rate, bool fwd = true){
 		delay(5+50*(1-rate/6)); //vary scalar multiple to adjust minimum acceleration
 	}
 
+	analogWrite(_pwm_pin_left, 255);
+	analogWrite(_pwm_pin_right, 255);
+
 	// Set new speed 
-	_current_speed = convert_i_to_speed(250); 
-	_current_rpm = convert_i_to_rpm(250); 
+	_current_speed = convert_i_to_speed(255); 
+	_current_rpm = convert_i_to_rpm(255); 
 }
 
 /**
@@ -157,8 +163,8 @@ void Drive::estop(){
   _mode = STOPPED;
 
   // Set PWM to stopped
-  analogWrite(_pwm_pin_left, 254);
-  analogWrite(_pwm_pin_right, 254);
+  analogWrite(_pwm_pin_left, 255);
+  analogWrite(_pwm_pin_right, 255);
   Serial.println("Stop");
 
   // Update speed parameter
@@ -191,7 +197,7 @@ void Drive::cruise(float speed = MAX_SPEED, bool fwd = true){
 /*
  * Get values of private members of the class
  */
-void Drive::get_params(float* curr_speed, int* curr_rpm, int* mode){
+void Drive::get_params(float* curr_speed, unsigned int* curr_rpm, int* mode){
 	*curr_speed = _current_speed;  
 	*curr_rpm = _current_rpm;
 	*mode = _mode;
@@ -230,22 +236,71 @@ void Drive::_set_left(){
 // V_max = 0.333m/s
 // omega_max = 16.65 rad/s
 
-float convert_i_to_speed(int i){
+float convert_i_to_speed(unsigned int i){
+
+	if (i == 0){
+		return MAX_SPEED; 
+	}
+
+	if (i > 255){
+		Serial.println("Warning: convert_i_to_speed - i > 255");
+		return 0;
+	}
+
 	return ((255 - i)/255)*(0.333);
 }
 
-int convert_i_to_rpm(int i){
+unsigned int convert_i_to_rpm(unsigned int i){
+
+	if (i == 0){
+		return MAX_RPM; 
+	}
+
+	if (i > 255){
+		Serial.println("Warning: convert_i_to_rpm - i > 255");
+		return 159;
+	}
+
 	return ((255 - i)/255)*(159);
 }
 
-int convert_speed_to_i(float speed){
+unsigned int convert_speed_to_i(float speed){
+
+	if (speed == MAX_SPEED){
+		return 0; 
+	}
+
+	if (speed == 0){
+		return 255; 
+	}
+
+	if (speed > MAX_SPEED){
+		Serial.println("Warning: convert_speed_to_i - speed > 255");
+		return 0;
+	}	
+
+	if (speed < 0){
+		Serial.println("Warning: convert_speed_to_i - speed < 0");
+		return 255;
+	}
+
 	return 255 - ((255*speed)/0.333);
 }
 
-int convert_speed_to_rpm(float speed){
+unsigned int convert_speed_to_rpm(float speed){
   return convert_i_to_rpm(convert_speed_to_i(speed));
 }
 
-int convert_rpm_to_i(int rpm){
+unsigned int convert_rpm_to_i(unsigned int rpm){
+
+	if (rpm == MAX_RPM){
+		return 0; 
+	}	
+
+	if (rpm > 159){
+		Serial.println("Warning: convert_rpm_to_i - rpm > 159");
+		return 0;
+	}
+
 	return 255 - ((255*rpm)/159);
 }
