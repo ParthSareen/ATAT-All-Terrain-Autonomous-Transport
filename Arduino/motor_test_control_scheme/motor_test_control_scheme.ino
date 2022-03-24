@@ -1,10 +1,17 @@
 #include <drive.h>
 
 //Initializing Pin
-const int ML_PWM_PIN = 11;
-const int ML_DIR_PIN = 8;
-const int MR_PWM_PIN = 10;
+// Arduino Pins
+const int ML_PWM_PIN = 3;
+const int ML_DIR_PIN = 4;
+const int MR_PWM_PIN = 6;
 const int MR_DIR_PIN = 7;
+
+//// Wemos Pins
+//const int ML_PWM_PIN = 3;
+//const int ML_DIR_PIN = 4;
+//const int MR_PWM_PIN = 6;
+//const int MR_DIR_PIN = 7;
 
 int set = 0;
 
@@ -43,25 +50,7 @@ void loop() {
   Serial.println(curr_rpm);
   Serial.println(mode);
 
-  delay(5000);
-  
-  // Test decceleration
-  drive.deccelerate(ACC_MINIMAL, true);
-  drive.get_params(&curr_speed, &curr_rpm, &mode);
-  Serial.println(curr_speed);
-  Serial.println(curr_rpm);
-  Serial.println(mode);
-
-  delay(5000);
-
-  // Turn right
-  drive.turn_right(HALF_SPEED);
-  drive.get_params(&curr_speed, &curr_rpm, &mode);
-  Serial.println(curr_speed);
-  Serial.println(curr_rpm);
-  Serial.println(mode);
-
-  delay(5000);
+  delay(1000);
 
   // Turn left
   drive.turn_left(HALF_SPEED);
@@ -70,7 +59,43 @@ void loop() {
   Serial.println(curr_rpm);
   Serial.println(mode);
 
-  delay(5000);
+  delay(1000);
+
+  // Turn right
+  drive.turn_right(HALF_SPEED);
+  drive.get_params(&curr_speed, &curr_rpm, &mode);
+  Serial.println(curr_speed);
+  Serial.println(curr_rpm);
+  Serial.println(mode);
+
+  delay(1000);
+
+  // Test decceleration
+  drive.deccelerate(ACC_MINIMAL, true);
+  drive.get_params(&curr_speed, &curr_rpm, &mode);
+  Serial.println(curr_speed);
+  Serial.println(curr_rpm);
+  Serial.println(mode);
+
+  delay(1000);
+
+  // Turn left
+  drive.turn_left(HALF_SPEED);
+  drive.get_params(&curr_speed, &curr_rpm, &mode);
+  Serial.println(curr_speed);
+  Serial.println(curr_rpm);
+  Serial.println(mode);
+
+  delay(1000);
+
+  // Turn right
+  drive.turn_right(HALF_SPEED);
+  drive.get_params(&curr_speed, &curr_rpm, &mode);
+  Serial.println(curr_speed);
+  Serial.println(curr_rpm);
+  Serial.println(mode);
+
+  delay(1000);
 
   // Cruise at a constant speed
   drive.cruise(HALF_SPEED, true);
@@ -79,7 +104,16 @@ void loop() {
   Serial.println(curr_rpm);
   Serial.println(mode);
 
-  delay(5000);
+  delay(1000);
+
+  // Cruise at a constant speed
+  drive.cruise(HALF_SPEED, true);
+  drive.get_params(&curr_speed, &curr_rpm, &mode);
+  Serial.println(curr_speed);
+  Serial.println(curr_rpm);
+  Serial.println(mode);
+
+  delay(1000);
 
   // E-stop
   drive.estop();
@@ -88,5 +122,41 @@ void loop() {
   Serial.println(curr_rpm);
   Serial.println(mode);
 
-  delay(5000); 
+  delay(1000);
+
+  // Turn left
+  drive.turn_left(HALF_SPEED);
+  drive.get_params(&curr_speed, &curr_rpm, &mode);
+  Serial.println(curr_speed);
+  Serial.println(curr_rpm);
+  Serial.println(mode);
+
+  delay(1000);
+
+  // Turn right
+  drive.turn_right(HALF_SPEED);
+  drive.get_params(&curr_speed, &curr_rpm, &mode);
+  Serial.println(curr_speed);
+  Serial.println(curr_rpm);
+  Serial.println(mode);
+
+  delay(1000);
+
+  // Cruise at a constant speed
+  drive.cruise(HALF_SPEED, true);
+  drive.get_params(&curr_speed, &curr_rpm, &mode);
+  Serial.println(curr_speed);
+  Serial.println(curr_rpm);
+  Serial.println(mode);
+
+  delay(1000);
+
+  // Test decceleration
+  drive.deccelerate(ACC_MINIMAL, true);
+  drive.get_params(&curr_speed, &curr_rpm, &mode);
+  Serial.println(curr_speed);
+  Serial.println(curr_rpm);
+  Serial.println(mode);
+
+  delay(1000);
 }
