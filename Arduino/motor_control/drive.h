@@ -5,7 +5,18 @@
 // Motor constants
 const int MAX_RPM = 159;
 const float MAX_SPEED = 0.333;
-const float HALF_SPEED = 0.15;  
+
+// Legacy, leaving so stuff doesn't break but should start 
+// using MEDIUM_SPEED because that is actually around half speed
+const float HALF_SPEED = 0.15; 
+
+// Motor Speeds according to speed curve
+// x = input for duty cycle between 0 - 255
+// rpm = -0.5795e^(0.02228x) + 156
+const float HIGH_SPEED = 0.137;
+const float MEDIUM_SPEED = 0.072; 
+const float LOW_SPEED = 0.033; 
+const float NO_SPEED = 0.0; 
 
 enum drive_mode {
     ACCELERATING = 0, 
@@ -24,17 +35,6 @@ enum accel_rate {
   ACC_HIGH = 4,
   ACC_IMMENSE = 5,
   ACC_MAXIMUM = 6
-};
-
-// Leave these for now 
-enum veloc_rate {
-  VEL_ZERO = 0,
-  VEL_MINIMAL = 0,
-  VEL_LOW = 0,
-  VEL_MEDIUM = 0,
-  VEL_HIGH = 0,
-  VEL_IMMENSE = 0,
-  VEL_MAXIMUM = 0
 };
 
 enum motor_spin {
