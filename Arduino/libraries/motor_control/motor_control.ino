@@ -14,7 +14,7 @@ void setup() {
 }
 
 void loop() {
-  AtAt.accelerate(ACC_HIGH);
+  AtAt.accelerate(ACC_HIGH, true);
   
 //  int i=0;
 //

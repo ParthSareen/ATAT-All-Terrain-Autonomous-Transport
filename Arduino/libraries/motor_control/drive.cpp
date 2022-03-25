@@ -176,21 +176,22 @@ void Drive::estop(){
 /*
  * input parameters optional; defaults to MAX_SPEED; true (forward)
  */
-void Drive::cruise(float speed = MAX_SPEED, bool fwd = true){
+void Drive::cruise(float lspeed = MAX_SPEED, float rspeed = MAX_SPEED, bool fwd = true){
   
   // Set robot state
   _mode = CRUISING;
   
-  int cruise_speed_i = convert_speed_to_i(speed); 
+  int lspeed_i = convert_speed_to_i(lspeed); 
+  int rspeed_i = convert_speed_to_i(rspeed);   
   fwd ? _set_forward() : _set_backward();
   
-  analogWrite(_pwm_pin_left, cruise_speed_i);
-  analogWrite(_pwm_pin_right, cruise_speed_i);
+  analogWrite(_pwm_pin_left, lspeed_i);
+  analogWrite(_pwm_pin_right, rspeed_i);
   Serial.println("Cruise");
 
   // Update speed parameter
-  _current_speed = speed;
-  _current_rpm = convert_speed_to_rpm(speed);
+  //_current_speed = speed;
+  //_current_rpm = convert_speed_to_rpm(speed);
 
 }
 
