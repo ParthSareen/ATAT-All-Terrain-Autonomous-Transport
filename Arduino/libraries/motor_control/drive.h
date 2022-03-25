@@ -5,7 +5,18 @@
 // Motor constants
 const int MAX_RPM = 159;
 const float MAX_SPEED = 0.333;
-const float HALF_SPEED = 0.15;  
+
+// Legacy, leaving so stuff doesn't break but should start 
+// using MEDIUM_SPEED because that is actually around half speed
+const float HALF_SPEED = 0.15; 
+
+// Motor Speeds according to speed curve
+// x = input for duty cycle between 0 - 255
+// rpm = -0.5795e^(0.02228x) + 156
+const float HIGH_SPEED = 0.137;
+const float MEDIUM_SPEED = 0.072; 
+const float LOW_SPEED = 0.033; 
+const float NO_SPEED = 0.0; 
 
 enum drive_mode {
     ACCELERATING = 0, 
@@ -26,17 +37,6 @@ enum accel_rate {
   ACC_MAXIMUM = 6
 };
 
-// Leave these for now 
-enum veloc_rate {
-  VEL_ZERO = 0,
-  VEL_MINIMAL = 0,
-  VEL_LOW = 0,
-  VEL_MEDIUM = 0,
-  VEL_HIGH = 0,
-  VEL_IMMENSE = 0,
-  VEL_MAXIMUM = 0
-};
-
 enum motor_spin {
     COUNTERCLOCKWISE = 0,
     CLOCKWISE = 1
@@ -52,7 +52,7 @@ class Drive {
     void turn_left(float speed);
     void reverse();
     void cruise(float speed, bool fwd);
-    void get_params(float* curr_speed, int* curr_rpm, int* mode);
+    void get_params(float* curr_speed, unsigned int* curr_rpm, int* mode);
   
   private:
     int _pwm_pin_left;
@@ -60,7 +60,7 @@ class Drive {
     int _dir_pin_left;
     int _dir_pin_right;
     float _current_speed; 
-    int _current_rpm;
+    unsigned int _current_rpm;
     int _mode; 
 
     // Helper functions
@@ -70,10 +70,10 @@ class Drive {
     void _set_left();
 };
 
-float convert_i_to_speed(int i);
-int convert_i_to_rpm(int i);
-int convert_speed_to_i(float speed);
-int convert_speed_to_rpm(float speed);
-int convert_rpm_to_i(int rpm);
+float convert_i_to_speed(unsigned int i);
+unsigned int convert_i_to_rpm(unsigned int i);
+unsigned int convert_speed_to_i(float speed);
+unsigned int convert_speed_to_rpm(float speed);
+unsigned int convert_rpm_to_i(unsigned int rpm);
 
 #endif
