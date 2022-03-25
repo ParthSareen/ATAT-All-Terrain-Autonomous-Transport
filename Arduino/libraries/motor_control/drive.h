@@ -52,6 +52,7 @@ class Drive {
     void turn_left(float speed);
     void reverse();
     void cruise(float lspeed, float rspeed, bool fwd);
+    void cruise(float speed, bool fwd);
     void get_params(float* curr_speed, unsigned int* curr_rpm, int* mode);
   
   private:

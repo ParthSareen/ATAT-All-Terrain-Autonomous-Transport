@@ -190,9 +190,16 @@ void Drive::cruise(float lspeed = MAX_SPEED, float rspeed = MAX_SPEED, bool fwd 
   Serial.println("Cruise");
 
   // Update speed parameter
-  //_current_speed = speed;
-  //_current_rpm = convert_speed_to_rpm(speed);
+  _current_speed = lspeed;
+  _current_rpm = convert_speed_to_rpm(lspeed); //Note: left speed used as singular speed variable. TODO: make current_lspeed and current_rspeed object properties.
 
+}
+
+/*
+ * input parameters optional; defaults to MAX_SPEED; true (forward)
+ */
+void Drive::cruise(float speed = MAX_SPEED, bool fwd = true){
+  cruise(speed,speed,fwd);
 }
 
 /*
