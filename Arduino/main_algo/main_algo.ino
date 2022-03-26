@@ -31,6 +31,8 @@
 #define DIR_PIN_RIGHT D6
 #define FRONT_US_DIST 7.00
 #define TILE_LENGTH 30.5
+#define LEFT_NEAR_THRESHOLD 4.0
+#define LEFT_FAR_THRESHOLD 8.0
 Adafruit_ICM20948 icm;
 
 Adafruit_VL53L0X lox1 = Adafruit_VL53L0X();
@@ -64,7 +66,7 @@ int track[6][6] = {  {0, 0, 0, 0, 0, 0},
                      {0, 0, 0, 0, 0, 0},
                      {0, 0, 0, 0, 0, -1}
                    };
-//start pos is [5][3]; 
+//start pos is [5][4]; 
 //Left or right implies y stays same 
 //up or down implies other var stays same 
 //use this var to keep track of current pos and update 
@@ -156,7 +158,20 @@ void loop() {
   //         Serial.println(ultrasonicAverageFront); 
   //         Serial.println(ultrasonicAverageLeft); 
            //Serial.println("inside if");
-           motorControl.cruise(MAX_SPEED, 1); 
+           ATAT.readTOFs(tofReadings, false);
+           if((tofReadings[1] > (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationLeft)) && (tofReadings[1] < (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationLeft))){
+             motorControl.cruise(MAX_SPEED, 1); 
+           }
+           else if((tofReadings[1] < (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationLeft))){
+             motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1); //If not correcting enough, change rspeed to MEDIUM_SPEED or lower
+           }
+           else if((tofReadings[1] > (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationLeft))){
+             motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1); //If not correcting enough, change lspeed to MEDIUM_SPEED or lower
+           }
+           else{
+            Serial.print("Why am I here???");
+           }
+           
            Serial.print("orientation: "); 
            Serial.println(orientation); 
            //track[currentPosition[0]][currentPosition[1]-1] = 1; 
@@ -232,7 +247,19 @@ void loop() {
     }
     else if(orientation == UP){ 
       if(track[currentPosition[0]-1][currentPosition[1]] == 0 &&  (ultrasonicAverageFront > ((FRONT_US_DIST + TILE_LENGTH/2.00)+changeOrientationUp*TILE_LENGTH)) || ultrasonicAverageFront < 0){
-          motorControl.cruise(MAX_SPEED, 1);
+         ATAT.readTOFs(tofReadings, false);
+         if((tofReadings[1] > (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationUp)) && (tofReadings[1] < (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationUp))){
+           motorControl.cruise(MAX_SPEED, 1); 
+         }
+         else if((tofReadings[1] < (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationUp))){
+           motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1); //If not correcting enough, change rspeed to MEDIUM_SPEED or lower
+         }
+         else if((tofReadings[1] > (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationUp))){
+           motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1); //If not correcting enough, change lspeed to MEDIUM_SPEED or lower
+         }
+         else{
+          Serial.print("Why am I here???");
+         }
       } else { 
         motorControl.estop();
         orientation = RIGHT; 
@@ -283,7 +310,19 @@ void loop() {
     }
     else if(orientation == RIGHT){ 
       if(track[currentPosition[0]][currentPosition[1]] == 1 && track[currentPosition[0]][currentPosition[1]+1] == 0 &&  (ultrasonicAverageFront > ((FRONT_US_DIST + TILE_LENGTH/2.00)+changeOrientationRight*TILE_LENGTH))|| ultrasonicAverageFront < 0){
-          motorControl.cruise(MAX_SPEED, 1);
+         ATAT.readTOFs(tofReadings, false);
+         if((tofReadings[1] > (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationRight)) && (tofReadings[1] < (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationRight))){
+           motorControl.cruise(MAX_SPEED, 1); 
+         }
+         else if((tofReadings[1] < (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationRight))){
+           motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1); //If not correcting enough, change rspeed to MEDIUM_SPEED or lower
+         }
+         else if((tofReadings[1] > (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationRight))){
+           motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1); //If not correcting enough, change lspeed to MEDIUM_SPEED or lower
+         }
+         else{
+          Serial.print("Why am I here???");
+         }
       } else { 
         motorControl.estop();
         orientation = DOWN; 
@@ -344,7 +383,19 @@ void loop() {
         exit(0); 
       }
       else if(track[currentPosition[0]+1][currentPosition[1]] == 0 &&  (ultrasonicAverageFront > ((FRONT_US_DIST + TILE_LENGTH/2.00)+changeOrientationDown*TILE_LENGTH))|| ultrasonicAverageFront < 0){
-          motorControl.cruise(MAX_SPEED, 1);
+         ATAT.readTOFs(tofReadings, false);
+         if((tofReadings[1] > (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationDown)) && (tofReadings[1] < (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationDown))){
+           motorControl.cruise(MAX_SPEED, 1); 
+         }
+         else if((tofReadings[1] < (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationDown))){
+           motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1); //If not correcting enough, change rspeed to MEDIUM_SPEED or lower
+         }
+         else if((tofReadings[1] > (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationDown))){
+           motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1); //If not correcting enough, change lspeed to MEDIUM_SPEED or lower
+         }
+         else{
+          Serial.print("Why am I here???");
+         }
       } else { 
         motorControl.estop();
         orientation = LEFT; 
