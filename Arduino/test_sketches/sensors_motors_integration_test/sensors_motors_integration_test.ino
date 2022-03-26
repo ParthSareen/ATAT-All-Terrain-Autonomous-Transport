@@ -44,26 +44,34 @@ void loop(void) {
   Serial.println("==> Running Main()");
 
   // Cruise at a constant speed
-  drive.cruise(MAX_SPEED, true);
+  drive.cruise(HALF_SPEED, true);
   drive.get_params(&curr_speed, &curr_rpm, &state);
-  Serial.println(curr_speed);
-  Serial.println(curr_rpm);
-  Serial.println(state);
-
-  float* tofs = new float[2];
+  delay(2000);
+  //drive.turn_right(MAX_SPEED);
+//  Serial.println(curr_speed);
+//  Serial.println(curr_rpm);
+//  Serial.println(state);
+//
+//  float* tofs = new float[2];
   float* icm_reads = new float[6];
-  sensors.readTOFs(tofs, false);
-  Serial.print("TOF 1: ");
-  Serial.println(tofs[0]);
-  Serial.print("TOF 2: ");
-  Serial.println(tofs[1]);
+//  sensors.readTOFs(tofs, false);
+//  Serial.print("TOF 1: ");
+//  Serial.println(tofs[0]);
+//  Serial.print("TOF 2: ");
+//  Serial.println(tofs[1]);
 
   sensors.readICM(&icm, icm_reads);
   Serial.print("az: ");
   Serial.println(icm_reads[2]);
+  Serial.print("gx: ");
+  Serial.println(icm_reads[3]);
+  Serial.print("gy: ");
+  Serial.println(icm_reads[4]);
+  Serial.print("gz: ");
+  Serial.println(icm_reads[5]);
   Serial.println("");
   delay(300);
 
-  delete[] tofs;
+  //delete[] tofs;
   delete[] icm_reads;
 }
