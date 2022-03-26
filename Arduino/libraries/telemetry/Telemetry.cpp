@@ -119,40 +119,20 @@ bool Telemetry::uploadSpeed(int speed) {
 }
 
 bool Telemetry::_uploadEvent(pb_TelemetryEvent* event){
-    // TODO: Refactor size to private const
-    // TODO: Make this non-blocking code, fault tolerant
     uint8_t buffer[128];
-    uint8_t readBuffer[128];
     pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
 
     if (!pb_encode(&stream, pb_TelemetryEvent_fields, event)){
-//        Serial.println("failed to encode proto");
-//        Serial.println(PB_GET_ERROR(&stream));
+       Serial.println("failed to encode proto");
+       Serial.println(PB_GET_ERROR(&stream));
         return false;
     }
 
+    // This slows execution, however is needed to be able read different messages
     bool connect_status = _client->connect(_addr, _port);
-    uint32_t retry_count = 0;
-    const uint32_t MAX_RETRY = 3;
-    // TODO check locking
-    while (connect_status == false and retry_count < MAX_RETRY) {
-//        Serial.println("Connect failed");
-        connect_status = _client->connect(_addr, _port);
-        retry_count++;
-        // delay(15);
-    }
-
-    // Exit if max reached
-    // if (retry_count == MAX_RETRY){
-    //     Serial.println("Max retry reached");
-    //     return false;
-    // }
     
     _client->write(buffer, stream.bytes_written);
-    // client.flush();
-    _client->stop(30);
-    // // TODO: refactor to not being blocked and having timeout instead
-    // while (_client->available()) {}
+
     return true;
 
 }
