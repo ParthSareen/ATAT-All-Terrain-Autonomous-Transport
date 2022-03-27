@@ -62,9 +62,9 @@ int track[6][6] = {  {0, 0, 0, 0, 0, 0},
                      {0, 0, 0, 0, 0, 0},
                      {0, 0, 0, 0, 0, 0},
                      {0, 0, 0, 0, 0, 0},
-                     {0, 1, 1, 1, 1, -1}
+                     {0, 0, 0, 0, 0, -1}
                    };
-//start pos is [5][3]; 
+//start pos is [5][4]; 
 //Left or right implies y stays same 
 //up or down implies other var stays same 
 //use this var to keep track of current pos and update 
@@ -169,7 +169,8 @@ void loop() {
         orientation = UP; 
         //TODO: Test speed + turning threshold 
         motorControl.turn_right(HALF_SPEED);
-        while(ultrasonicAverageFront < 70 || ((currentTime - millis()) < 670 ) || ultrasonicAverageFront != -2.00){ 
+        while(ultrasonicAverageFront < 70 && ((millis() -currentTime) < 670 )){ 
+          Serial.println(millis()-currentTime); 
           ATAT.readTOFs(tofReadings, false); 
           ultrasonicAverageFront = tofReadings[0]/10.0; 
           ultrasonicAverageLeft = tofReadings[1]/10.0; 
@@ -239,7 +240,7 @@ void loop() {
         //TODO: Test speed + turning threshold 
         motorControl.turn_right(HALF_SPEED);
         float currentTime = millis(); 
-        while(ultrasonicAverageFront < 70 || ((currentTime - millis()) < 670 ) || ultrasonicAverageFront != -2.00){ 
+        while(ultrasonicAverageFront < 70 && ((millis() -currentTime) < 670 )){ 
           ATAT.readTOFs(tofReadings, false); 
           ultrasonicAverageFront = tofReadings[0]/10.0; 
           ultrasonicAverageLeft = tofReadings[1]/10.0; 
@@ -291,7 +292,7 @@ void loop() {
         //TODO: Test speed + turning threshold 
         motorControl.turn_right(HALF_SPEED);
         float currentTime = millis(); 
-        while(ultrasonicAverageFront < 70 || ((currentTime - millis()) < 670 ) || ultrasonicAverageFront != -2.00){ 
+        while(ultrasonicAverageFront < 70 && ((millis() -currentTime) < 670 )){ 
           ATAT.readTOFs(tofReadings, false); 
           ultrasonicAverageFront = tofReadings[0]/10.0; 
           ultrasonicAverageLeft = tofReadings[1]/10.0; 
@@ -351,7 +352,7 @@ void loop() {
         //TODO: Test speed + turning threshold 
         motorControl.turn_right(HALF_SPEED);
         float currentTime = millis(); 
-        while(ultrasonicAverageFront < 70 || ((currentTime - millis()) < 670 ) || ultrasonicAverageFront != -2.00){ 
+        while(ultrasonicAverageFront < 70 && ((millis() -currentTime) < 670 )){  
           ATAT.readTOFs(tofReadings, false); 
           ultrasonicAverageFront = tofReadings[0]/10.0; 
           ultrasonicAverageLeft = tofReadings[1]/10.0; 
