@@ -9,13 +9,14 @@
 #include "Adafruit_VL53L0X.h"
 #include "drive.h" 
 
-//#include <telemetry.pb.h>
-//#include <ESP8266WiFi.h>
-//#include <pb.h>
-//#include <pb_common.h>
-//#include <pb_decode.h>
-//#include <pb_encode.h>
-//#include <Telemetry.h>
+#include <telemetry.pb.h>
+#include <ESP8266WiFi.h>
+#include <pb.h>
+#include <pb_common.h>
+#include <pb_decode.h>
+#include <pb_encode.h>
+#include <Telemetry.h>
+
 #define NUM_TOF 2
 #define NUM_SENS 6
 
@@ -31,6 +32,9 @@
 #define DIR_PIN_RIGHT D6
 #define FRONT_US_DIST 7.00
 #define TILE_LENGTH 30.5
+#define LEFT_NEAR_THRESHOLD 8.0
+#define LEFT_FAR_THRESHOLD 14.0
+#define CORRECTION_THRESHOLD 13.0 
 Adafruit_ICM20948 icm;
 
 Adafruit_VL53L0X lox1 = Adafruit_VL53L0X();
@@ -38,12 +42,12 @@ Adafruit_VL53L0X lox2 = Adafruit_VL53L0X();
 
 char ssid[] = "TP-LINK_2.4GHz_677647";
 char pass[] = "98238316";  
-char* addr = "192.168.0.108";
+char* addr = "192.168.0.109";
 uint16_t port  = 10101;
 
-//WiFiClient  client;
+WiFiClient  client;
 
-//Telemetry telemetry(1000, &client, addr, port);
+Telemetry telemetry(1000, &client, addr, port);
 int count = 0;
 Sensors ATAT(2);
 long duration;
@@ -88,27 +92,26 @@ float lastUltrasonicAverageFront = 0;
 float lastUltrasonicAverageLeft = 0; 
 
 void setup() {
-  //Wire.begin(D1, D2);
   Serial.begin(115200);
   //Serial.println();
   pinMode(XSHUT1, OUTPUT);
   pinMode(XSHUT2, OUTPUT);
   Wire.begin();
-//  Serial.print("Setting up WIFI for SSID ");
-//  Serial.println(ssid);
-//
-//  WiFi.mode(WIFI_STA);
-//  WiFi.begin(ssid, pass);
-//
-//  while (WiFi.status() != WL_CONNECTED) {
-//    Serial.println("WIFI connection failed, reconnecting...");
-//    delay(500);
-//  }
-//
-//  Serial.println("");
-//  Serial.print("WiFi connected, ");
-//  Serial.print("IP address: ");
-//  Serial.println(WiFi.localIP());
+ Serial.print("Setting up WIFI for SSID ");
+ Serial.println(ssid);
+
+ WiFi.mode(WIFI_STA);
+ WiFi.begin(ssid, pass);
+
+ while (WiFi.status() != WL_CONNECTED) {
+   Serial.println("WIFI connection failed, reconnecting...");
+   delay(500);
+ }
+
+ Serial.println("");
+ Serial.print("WiFi connected, ");
+ Serial.print("IP address: ");
+ Serial.println(WiFi.localIP());
 
   //TODO: readd setup tofs when work !! 
   ATAT.setupTOFs(&lox1, &lox2, XSHUT1, XSHUT2); 
@@ -139,15 +142,19 @@ void loop() {
   Serial.println(ultrasonicAverageFront); 
   Serial.print("left tof reading: ");
   Serial.println(ultrasonicAverageLeft);
-  ATAT.readICM(&icm, icmReadings); 
-//  if (count == 5){
-//    telemetry.uploadUltrasonic(ultrasonicAverageFront, ultrasonicAverageLeft, 0);
+  ATAT.readICM(&icm, icmReadings);
+
+//  if (count == 10){
+//    telemetry.uploadUltrasonic(tofReadings[0], tofReadings[1], 0);
+//    telemetry.uploadOrientation(orientation);
+//    telemetry.uploadImuGyro(icmReadings[3], icmReadings[4], icmReadings[5]);
 //    count = 0;
 //  }
 //   else {
 //    count++;   
 //  }
   //check if it is in a pit, if it is ignore readings. the variable Gy corresponds to pit readings.  
+
   if(icmReadings[4] < 0.11 && icmReadings[4] > -0.11){
     if(orientation == LEFT){  
       //index check 
@@ -156,9 +163,30 @@ void loop() {
   //         Serial.println(ultrasonicAverageFront); 
   //         Serial.println(ultrasonicAverageLeft); 
            //Serial.println("inside if");
-           motorControl.cruise(MAX_SPEED, 1); 
-           Serial.print("orientation: "); 
-           Serial.println(orientation); 
+
+//           if ((ultrasonicAverageLeft > CORRECTION_THRESHOLD)&&ultrasonicAverageLeft != 0.2){
+//            motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+//            } else {
+//              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+//              }
+//         ATAT.readTOFs(tofReadings, false);
+         
+         
+//         if((tofReadings[1]/10.00 > (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationUp)) && (tofReadings[1]/10.00 < (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationUp)) && tofReadings[1]/10 != -2.00){
+//           motorControl.cruise(MAX_SPEED, MAX_SPEED, 1); 
+//         }
+//         else if((tofReadings[1]/10.00 < (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationUp)) && tofReadings[1]/10.00 != -2.00){
+//           motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1); //If not correcting enough, change rspeed to MEDIUM_SPEED or lower
+//         }
+//         else if((tofReadings[1]/10.00 > (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationUp))){
+//           motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1); //If not correcting enough, change lspeed to MEDIUM_SPEED or lower
+//         }
+//         else{
+//          Serial.print("Why am I here???");
+//         }
+//           motorControl.cruise(MAX_SPEED, 1); 
+//           Serial.print("orientation: "); 
+//           Serial.println(orientation); 
            //track[currentPosition[0]][currentPosition[1]-1] = 1; 
       } else { 
   //      Serial.println(ultrasonicAverageFront); 
@@ -168,8 +196,8 @@ void loop() {
         motorControl.estop();
         orientation = UP; 
         //TODO: Test speed + turning threshold 
-        motorControl.turn_right(HALF_SPEED);
-        while(ultrasonicAverageFront < 70 && ((millis() -currentTime) < 670 )){ 
+        motorControl.turn_right(MAX_SPEED);
+        while((millis() -currentTime) < 670 ){ 
           Serial.println(millis()-currentTime); 
           ATAT.readTOFs(tofReadings, false); 
           ultrasonicAverageFront = tofReadings[0]/10.0; 
@@ -233,14 +261,26 @@ void loop() {
     }
     else if(orientation == UP){ 
       if(track[currentPosition[0]-1][currentPosition[1]] == 0 &&  (ultrasonicAverageFront > ((FRONT_US_DIST + TILE_LENGTH/2.00)+changeOrientationUp*TILE_LENGTH)) || ultrasonicAverageFront < 0){
-          motorControl.cruise(MAX_SPEED, 1);
+//         ATAT.readTOFs(tofReadings, false);
+//         if((tofReadings[1]/10.00 > (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationUp)) && (tofReadings[1]/10.00 < (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationUp))){
+//           motorControl.cruise(MAX_SPEED, MAX_SPEED, 1); 
+//         }
+//         else if((tofReadings[1]/10.00 < (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationUp))){
+//           motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1); //If not correcting enough, change rspeed to MEDIUM_SPEED or lower
+//         }
+//         else if((tofReadings[1]/10.00 > (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationUp))){
+//           motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1); //If not correcting enough, change lspeed to MEDIUM_SPEED or lower
+//         }
+//         else{
+//          Serial.print("Why am I here???");
+//         }
       } else { 
         motorControl.estop();
         orientation = RIGHT; 
         //TODO: Test speed + turning threshold 
-        motorControl.turn_right(HALF_SPEED);
+        motorControl.turn_right(MAX_SPEED);
         float currentTime = millis(); 
-        while(ultrasonicAverageFront < 70 && ((millis() -currentTime) < 670 )){ 
+        while(((millis() -currentTime) < 670 )){ 
           ATAT.readTOFs(tofReadings, false); 
           ultrasonicAverageFront = tofReadings[0]/10.0; 
           ultrasonicAverageLeft = tofReadings[1]/10.0; 
@@ -283,16 +323,28 @@ void loop() {
       }
     }
     else if(orientation == RIGHT){ 
-      if(track[currentPosition[0]][currentPosition[1]] == 1 && track[currentPosition[0]][currentPosition[1]+1] == 0 &&  (ultrasonicAverageFront > ((FRONT_US_DIST + TILE_LENGTH/2.00)+changeOrientationRight*TILE_LENGTH))|| ultrasonicAverageFront < 0){
-          motorControl.cruise(MAX_SPEED, 1);
+      if(track[currentPosition[0]][currentPosition[1]+1] == 0 &&  (ultrasonicAverageFront > ((FRONT_US_DIST + TILE_LENGTH/2.00)+changeOrientationRight*TILE_LENGTH))|| ultrasonicAverageFront < 0){
+//         ATAT.readTOFs(tofReadings, false);
+//         if((tofReadings[1]/10.00 > (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationRight)) && (tofReadings[1]/10.00 < (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationRight))){
+//           motorControl.cruise(MAX_SPEED, MAX_SPEED, 1); 
+//         }
+//         else if((tofReadings[1]/10.00 < (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationRight))){
+//           motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1); //If not correcting enough, change rspeed to MEDIUM_SPEED or lower
+//         }
+//         else if((tofReadings[1]/10.00 > (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationRight))){
+//           motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1); //If not correcting enough, change lspeed to MEDIUM_SPEED or lower
+//         }
+//         else{
+//          Serial.print("Why am I here???");
+//         }
       } else { 
         motorControl.estop();
         orientation = DOWN; 
         //changeOrientationRight++;
         //TODO: Test speed + turning threshold 
-        motorControl.turn_right(HALF_SPEED);
+        motorControl.turn_right(MAX_SPEED);
         float currentTime = millis(); 
-        while(ultrasonicAverageFront < 70 && ((millis() -currentTime) < 670 )){ 
+        while((millis() -currentTime) < 670 ){ 
           ATAT.readTOFs(tofReadings, false); 
           ultrasonicAverageFront = tofReadings[0]/10.0; 
           ultrasonicAverageLeft = tofReadings[1]/10.0; 
@@ -345,18 +397,31 @@ void loop() {
         exit(0); 
       }
       else if(track[currentPosition[0]+1][currentPosition[1]] == 0 &&  (ultrasonicAverageFront > ((FRONT_US_DIST + TILE_LENGTH/2.00)+changeOrientationDown*TILE_LENGTH))|| ultrasonicAverageFront < 0){
-          motorControl.cruise(MAX_SPEED, 1);
+//         ATAT.readTOFs(tofReadings, false);
+//         if((tofReadings[1]/10.00 > (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationDown)) && (tofReadings[1]/10.00 < (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationDown))){
+//           motorControl.cruise(MAX_SPEED, MAX_SPEED, 1); 
+//         }
+//         else if((tofReadings[1]/10.00 < (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationDown))){
+//           motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1); //If not correcting enough, change rspeed to MEDIUM_SPEED or lower
+//         }
+//         else if((tofReadings[1]/10.00 > (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationDown))){
+//           motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1); //If not correcting enough, change lspeed to MEDIUM_SPEED or lower
+//         }
+//         else{
+//          Serial.print("Why am I here???");
+//         }
+
       } else { 
         motorControl.estop();
         orientation = LEFT; 
         //TODO: Test speed + turning threshold 
-        motorControl.turn_right(HALF_SPEED);
+        motorControl.turn_right(MAX_SPEED);
         float currentTime = millis(); 
-        while(ultrasonicAverageFront < 70 && ((millis() -currentTime) < 670 )){  
+        while(((millis() -currentTime) < 670 )){  
           ATAT.readTOFs(tofReadings, false); 
           ultrasonicAverageFront = tofReadings[0]/10.0; 
           ultrasonicAverageLeft = tofReadings[1]/10.0; 
-          Serial.println("It is turning"); 
+          Serial.println("It is turning");  
           Serial.print("front tof reading: ");
           Serial.println(ultrasonicAverageFront); 
           Serial.print("left tof reading: ");
