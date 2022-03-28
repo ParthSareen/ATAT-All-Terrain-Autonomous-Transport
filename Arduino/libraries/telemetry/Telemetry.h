@@ -26,17 +26,16 @@ class Telemetry {
         // Make sure enum mappings correlate with protobuf
         bool uploadOrientation(int orientation);
         bool uploadShutdownStatus(bool shutdown_status);
-
+        bool uploadMainData(float* tof_values, float* icm_values, int orientation);
         bool getBackupData ();
 
     private:
         int _waitDelay;
-        bool _uploadEvent(pb_TelemetryEvent event);
+        bool _uploadEvent(pb_TelemetryEvent* event);
 
         uint16_t _port  = 10101;
         // char* _addr = "192.168.0.101";
         char* _addr = "172.20.10.7";
-        bool _retry_connection;
 
         WiFiClient* _client;
 
