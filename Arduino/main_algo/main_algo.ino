@@ -34,7 +34,8 @@
 #define TILE_LENGTH 30.5
 #define LEFT_NEAR_THRESHOLD 8.0
 #define LEFT_FAR_THRESHOLD 14.0
-#define CORRECTION_THRESHOLD 13.0 
+#define CORRECTION_THRESHOLD_UPPER 17.0 
+#define CORRECTION_THRESHOLD_LOWER 12.0 
 Adafruit_ICM20948 icm;
 
 Adafruit_VL53L0X lox1 = Adafruit_VL53L0X();
@@ -155,6 +156,8 @@ void loop() {
 //  }
   //check if it is in a pit, if it is ignore readings. the variable Gy corresponds to pit readings.  
 
+  
+
   if(icmReadings[4] < 0.11 && icmReadings[4] > -0.11){
     if(orientation == LEFT){  
       //index check 
@@ -164,11 +167,21 @@ void loop() {
   //         Serial.println(ultrasonicAverageLeft); 
            //Serial.println("inside if");
 
-//           if ((ultrasonicAverageLeft > CORRECTION_THRESHOLD)&&ultrasonicAverageLeft != 0.2){
-//            motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
-//            } else {
-//              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
-//              }
+           if ((ultrasonicAverageLeft > (CORRECTION_THRESHOLD_UPPER+TILE_LENGTH*changeOrientationLeft))&& (ultrasonicAverageLeft != 0.2)){
+            motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1);
+            delay(100); 
+            motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+            } 
+            
+            else if ((ultrasonicAverageLeft < CORRECTION_THRESHOLD_LOWER+TILE_LENGTH*changeOrientationLeft)&& (ultrasonicAverageLeft != 0.2)){
+              motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1);
+              delay(100);
+              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+              }
+            
+            else {
+              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+              }
 //         ATAT.readTOFs(tofReadings, false);
          
          
@@ -274,6 +287,17 @@ void loop() {
 //         else{
 //          Serial.print("Why am I here???");
 //         }
+          if ((ultrasonicAverageLeft > (CORRECTION_THRESHOLD_UPPER+TILE_LENGTH*changeOrientationUp))&& (ultrasonicAverageLeft != 0.2)){
+            motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1);
+            } 
+            
+            else if ((ultrasonicAverageLeft < CORRECTION_THRESHOLD_LOWER+TILE_LENGTH*changeOrientationUp)&& (ultrasonicAverageLeft != 0.2)){
+              motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1);
+              }
+            
+            else {
+              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+              }
       } else { 
         motorControl.estop();
         orientation = RIGHT; 
@@ -337,6 +361,17 @@ void loop() {
 //         else{
 //          Serial.print("Why am I here???");
 //         }
+          if ((ultrasonicAverageLeft > (CORRECTION_THRESHOLD_UPPER+TILE_LENGTH*changeOrientationRight))&& (ultrasonicAverageLeft != 0.2)){
+            motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1);
+            } 
+            
+            else if ((ultrasonicAverageLeft < CORRECTION_THRESHOLD_LOWER+TILE_LENGTH*changeOrientationRight)&& (ultrasonicAverageLeft != 0.2)){
+              motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1);
+              }
+            
+            else {
+              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+              }
       } else { 
         motorControl.estop();
         orientation = DOWN; 
@@ -410,7 +445,17 @@ void loop() {
 //         else{
 //          Serial.print("Why am I here???");
 //         }
-
+        if ((ultrasonicAverageLeft > (CORRECTION_THRESHOLD_UPPER+TILE_LENGTH*changeOrientationDown))&& (ultrasonicAverageLeft != 0.2)){
+            motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1);
+            } 
+            
+            else if ((ultrasonicAverageLeft < CORRECTION_THRESHOLD_LOWER+TILE_LENGTH*changeOrientationDown)&& (ultrasonicAverageLeft != 0.2)){
+              motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1);
+              }
+            
+            else {
+              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+              }
       } else { 
         motorControl.estop();
         orientation = LEFT; 
