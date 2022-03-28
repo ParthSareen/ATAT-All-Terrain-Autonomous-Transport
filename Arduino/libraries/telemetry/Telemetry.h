@@ -26,7 +26,7 @@ class Telemetry {
         // Make sure enum mappings correlate with protobuf
         bool uploadOrientation(int orientation);
         bool uploadShutdownStatus(bool shutdown_status);
-
+        bool uploadMainData(float* tof_values, float* icm_values, int orientation);
         bool getBackupData ();
 
     private:
