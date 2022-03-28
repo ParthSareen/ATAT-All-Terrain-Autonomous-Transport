@@ -118,6 +118,30 @@ bool Telemetry::uploadSpeed(int speed) {
     
 }
 
+bool Telemetry::uploadMainData(float* tof_values, float* icm_values, int orientation) {
+    pb_TelemetryEvent telemetryEvent = pb_TelemetryEvent_init_zero;
+    telemetryEvent.has_tel_us = true;
+    telemetryEvent.has_tel_gyro = true;
+    telemetryEvent.has_tel_acc = true;
+    telemetryEvent.has_tel_orientation = true;
+    telemetryEvent.tel_cmd = pb_TelemetryEvent_Telemetry_Command_CMD_ULTRASONIC;
+
+    telemetryEvent.tel_us.us_front = tof_values[0];
+    telemetryEvent.tel_us.us_left = tof_values[1];
+
+    telemetryEvent.tel_acc.accel_x = icm_values[0];
+    telemetryEvent.tel_acc.accel_y = icm_values[1];
+    telemetryEvent.tel_acc.accel_z = icm_values[2];
+
+    telemetryEvent.tel_gyro.gyro_x = icm_values[4];
+    telemetryEvent.tel_gyro.gyro_y = icm_values[5];
+    telemetryEvent.tel_gyro.gyro_z = icm_values[6];
+
+    pb_TelemetryEvent_Orientation pb_orientation = static_cast<pb_TelemetryEvent_Orientation>(orientation);
+    telemetryEvent.tel_orientation.orientation = pb_orientation;
+    return _uploadEvent(&telemetryEvent)
+}
+
 bool Telemetry::_uploadEvent(pb_TelemetryEvent* event){
     uint8_t buffer[128];
     pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
@@ -128,8 +152,8 @@ bool Telemetry::_uploadEvent(pb_TelemetryEvent* event){
         return false;
     }
 
-    // This slows execution, however is needed to be able read different messages
-    bool connect_status = _client->connect(_addr, _port);
+    // This slows execution, however is needed to be able to read different messages
+    //_client->connect(_addr, _port);
     
     _client->write(buffer, stream.bytes_written);
 
