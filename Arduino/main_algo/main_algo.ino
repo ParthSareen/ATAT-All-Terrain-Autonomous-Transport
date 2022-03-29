@@ -37,8 +37,8 @@
 // Measured
 //#define CORRECTION_THRESHOLD_UPPER 21 
 //#define CORRECTION_THRESHOLD_LOWER 8.5
-#define CORRECTION_THRESHOLD_UPPER 18 
-#define CORRECTION_THRESHOLD_LOWER 13
+#define CORRECTION_THRESHOLD_UPPER 17 
+#define CORRECTION_THRESHOLD_LOWER 14.5
 Adafruit_ICM20948 icm;
 
 Adafruit_VL53L0X lox1 = Adafruit_VL53L0X();
@@ -208,11 +208,11 @@ void loop() {
               }
             
             else {
-              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+              motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
               }
 //         ATAT.readTOFs(tofReadings, false);
 
-             motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+             motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
          
          
 //         if((tofReadings[1]/10.00 > (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationUp)) && (tofReadings[1]/10.00 < (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationUp)) && tofReadings[1]/10 != -2.00){
@@ -267,8 +267,8 @@ void loop() {
 //          Serial.println(icmReadings[5]);
           
         }
-        motorControl.cruise(MAX_SPEED,MAX_SPEED, 1);
-        delay(50); 
+        motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
+        //delay(50); 
         motorControl.estop();
 
         //y = 5
@@ -328,10 +328,10 @@ void loop() {
               }
             
             else {
-              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+              motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
               }
 
-           motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+           motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
       } else { 
         motorControl.estop();
         //TODO: Test speed + turning threshold 
@@ -350,7 +350,7 @@ void loop() {
 //          Serial.println(orientation);
         }
         motorControl.cruise(MAX_SPEED,MAX_SPEED, 1);
-        delay(50); 
+        //delay(50); 
         motorControl.estop();
         //x=1
         //
@@ -412,10 +412,10 @@ void loop() {
               }
             
             else {
-              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+              motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
               }
 
-              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+              motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
       } else { 
         motorControl.estop();
         //changeOrientationRight++;
@@ -507,10 +507,10 @@ void loop() {
               }
             
             else {
-              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+              motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
               }
 
-              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+              motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
       } else { 
         motorControl.estop();
         //TODO: Test speed + turning threshold 
@@ -529,7 +529,7 @@ void loop() {
 //          Serial.println(orientation);
         }
         motorControl.cruise(MAX_SPEED,MAX_SPEED, 1);
-        delay(50); 
+        //delay(50); 
         motorControl.estop();
         //x=4
         int x = currentPosition[1]; 
