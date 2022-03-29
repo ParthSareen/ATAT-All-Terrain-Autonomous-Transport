@@ -34,8 +34,8 @@
 #define TILE_LENGTH 30.5
 #define LEFT_NEAR_THRESHOLD 8.0
 #define LEFT_FAR_THRESHOLD 14.0
-#define CORRECTION_THRESHOLD_UPPER 17.0 
-#define CORRECTION_THRESHOLD_LOWER 12.0 
+#define CORRECTION_THRESHOLD_UPPER 21 
+#define CORRECTION_THRESHOLD_LOWER 8.5
 Adafruit_ICM20948 icm;
 
 Adafruit_VL53L0X lox1 = Adafruit_VL53L0X();
@@ -98,33 +98,37 @@ void setup() {
   pinMode(XSHUT1, OUTPUT);
   pinMode(XSHUT2, OUTPUT);
   Wire.begin();
- Serial.print("Setting up WIFI for SSID ");
- Serial.println(ssid);
-
- WiFi.mode(WIFI_STA);
- WiFi.begin(ssid, pass);
-
- while (WiFi.status() != WL_CONNECTED) {
-   Serial.println("WIFI connection failed, reconnecting...");
-   delay(500);
- }
-
- Serial.println("");
- Serial.print("WiFi connected, ");
- Serial.print("IP address: ");
- Serial.println(WiFi.localIP());
+// Serial.print("Setting up WIFI for SSID ");
+// Serial.println(ssid);
+//
+// WiFi.mode(WIFI_STA);
+// WiFi.begin(ssid, pass);
+//
+// while (WiFi.status() != WL_CONNECTED) {
+//   Serial.println("WIFI connection failed, reconnecting...");
+//   delay(500);
+// }
+//
+// Serial.println("");
+// Serial.print("WiFi connected, ");
+// Serial.print("IP address: ");
+// Serial.println(WiFi.localIP());
 
   //TODO: readd setup tofs when work !! 
   ATAT.setupTOFs(&lox1, &lox2, XSHUT1, XSHUT2); 
   Serial.println("Calibrating ICM");
   ATAT.calibrateICM(&icm);
+  delay(5000);
+  
   //delay(5000);
 }
 
 void loop() {
+  
   float * tofReadings = new float[NUM_TOF]; 
   float * icmReadings = new float [NUM_SENS]; 
-  ATAT.readTOFs(tofReadings, false);  
+  ATAT.readTOFs(tofReadings, false);
+   
   
   //float * imuReadings = new float[NUM_SENS];
   //take 10 readings find average 
@@ -145,15 +149,20 @@ void loop() {
   Serial.println(ultrasonicAverageLeft);
   ATAT.readICM(&icm, icmReadings);
 
-//  if (count == 10){
-//    telemetry.uploadUltrasonic(tofReadings[0], tofReadings[1], 0);
-//    telemetry.uploadOrientation(orientation);
-//    telemetry.uploadImuGyro(icmReadings[3], icmReadings[4], icmReadings[5]);
+// Telemetry 
+//  float startTime = millis();
+//  if (count == 5){
+//    client.connect(addr, port); 
+//    telemetry.uploadMainData(tofReadings, icmReadings, orientation);
 //    count = 0;
 //  }
 //   else {
 //    count++;   
 //  }
+//  float endTime = millis();
+//  Serial.print("Time: ");
+//  Serial.println(endTime-startTime);
+  
   //check if it is in a pit, if it is ignore readings. the variable Gy corresponds to pit readings.  
 
   
@@ -167,22 +176,25 @@ void loop() {
   //         Serial.println(ultrasonicAverageLeft); 
            //Serial.println("inside if");
 
+          // Correction - TODO: Calibrate
            if ((ultrasonicAverageLeft > (CORRECTION_THRESHOLD_UPPER+TILE_LENGTH*changeOrientationLeft))&& (ultrasonicAverageLeft != 0.2)){
             motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1);
-            delay(100); 
-            motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+//            delay(50);
+//            motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
             } 
             
             else if ((ultrasonicAverageLeft < CORRECTION_THRESHOLD_LOWER+TILE_LENGTH*changeOrientationLeft)&& (ultrasonicAverageLeft != 0.2)){
               motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1);
-              delay(100);
-              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+//              delay(50);
+//              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
               }
             
             else {
               motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
               }
 //         ATAT.readTOFs(tofReadings, false);
+
+//          motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
          
          
 //         if((tofReadings[1]/10.00 > (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationUp)) && (tofReadings[1]/10.00 < (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationUp)) && tofReadings[1]/10 != -2.00){
@@ -287,17 +299,19 @@ void loop() {
 //         else{
 //          Serial.print("Why am I here???");
 //         }
-          if ((ultrasonicAverageLeft > (CORRECTION_THRESHOLD_UPPER+TILE_LENGTH*changeOrientationUp))&& (ultrasonicAverageLeft != 0.2)){
-            motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1);
-            } 
-            
-            else if ((ultrasonicAverageLeft < CORRECTION_THRESHOLD_LOWER+TILE_LENGTH*changeOrientationUp)&& (ultrasonicAverageLeft != 0.2)){
-              motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1);
-              }
-            
-            else {
+//          if ((ultrasonicAverageLeft > (CORRECTION_THRESHOLD_UPPER+TILE_LENGTH*changeOrientationUp))&& (ultrasonicAverageLeft != 0.2)){
+//            motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1);
+//            } 
+//            
+//            else if ((ultrasonicAverageLeft < CORRECTION_THRESHOLD_LOWER+TILE_LENGTH*changeOrientationUp)&& (ultrasonicAverageLeft != 0.2)){
+//              motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1);
+//              }
+//            
+//            else {
+//              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+//              }
+
               motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
-              }
       } else { 
         motorControl.estop();
         orientation = RIGHT; 
@@ -361,17 +375,19 @@ void loop() {
 //         else{
 //          Serial.print("Why am I here???");
 //         }
-          if ((ultrasonicAverageLeft > (CORRECTION_THRESHOLD_UPPER+TILE_LENGTH*changeOrientationRight))&& (ultrasonicAverageLeft != 0.2)){
-            motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1);
-            } 
-            
-            else if ((ultrasonicAverageLeft < CORRECTION_THRESHOLD_LOWER+TILE_LENGTH*changeOrientationRight)&& (ultrasonicAverageLeft != 0.2)){
-              motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1);
-              }
-            
-            else {
+//          if ((ultrasonicAverageLeft > (CORRECTION_THRESHOLD_UPPER+TILE_LENGTH*changeOrientationRight))&& (ultrasonicAverageLeft != 0.2)){
+//            motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1);
+//            } 
+//            
+//            else if ((ultrasonicAverageLeft < CORRECTION_THRESHOLD_LOWER+TILE_LENGTH*changeOrientationRight)&& (ultrasonicAverageLeft != 0.2)){
+//              motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1);
+//              }
+//            
+//            else {
+//              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+//              }
+
               motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
-              }
       } else { 
         motorControl.estop();
         orientation = DOWN; 
@@ -445,17 +461,9 @@ void loop() {
 //         else{
 //          Serial.print("Why am I here???");
 //         }
-        if ((ultrasonicAverageLeft > (CORRECTION_THRESHOLD_UPPER+TILE_LENGTH*changeOrientationDown))&& (ultrasonicAverageLeft != 0.2)){
-            motorControl.cruise(MAX_SPEED, HIGH_SPEED, 1);
-            } 
-            
-            else if ((ultrasonicAverageLeft < CORRECTION_THRESHOLD_LOWER+TILE_LENGTH*changeOrientationDown)&& (ultrasonicAverageLeft != 0.2)){
-              motorControl.cruise(HIGH_SPEED, MAX_SPEED, 1);
-              }
-            
-            else {
+//   
+
               motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
-              }
       } else { 
         motorControl.estop();
         orientation = LEFT; 
@@ -523,7 +531,8 @@ void loop() {
   tofReadings = NULL;
   //imuReadings = NULL;
   //delete[] imuReadings;
-  delete[] tofReadings; 
+  delete[] tofReadings;
+  
   //delay(1000);
   //motorControl.estop(); 
 //  while(1){ 
