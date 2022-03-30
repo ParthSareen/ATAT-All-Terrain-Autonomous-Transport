@@ -31,14 +31,13 @@
 #define DIR_PIN_LEFT D4
 #define DIR_PIN_RIGHT D6
 #define FRONT_US_DIST 10.00
-#define TILE_LENGTH 27
-#define LEFT_NEAR_THRESHOLD 10.0
-#define LEFT_FAR_THRESHOLD 13.0
+#define TILE_LENGTH 28
+
 // Measured
 //#define CORRECTION_THRESHOLD_UPPER 21 
 //#define CORRECTION_THRESHOLD_LOWER 8.5
 #define CORRECTION_THRESHOLD_UPPER 17 
-#define CORRECTION_THRESHOLD_LOWER 14.5
+#define CORRECTION_THRESHOLD_LOWER 12 
 Adafruit_ICM20948 icm;
 
 Adafruit_VL53L0X lox1 = Adafruit_VL53L0X();
@@ -50,7 +49,7 @@ Adafruit_VL53L0X lox2 = Adafruit_VL53L0X();
 //uint16_t port  = 10101;
 //
 //WiFiClient  client;
-
+//
 //Telemetry telemetry(1000, &client, addr, port);
 int count = 0;
 Sensors ATAT(2);
@@ -111,7 +110,7 @@ void setup() {
   pinMode(XSHUT2, OUTPUT);
   Wire.begin();
 
-//   //WIFI
+   //WIFI
 //   Serial.print("Setting up WIFI for SSID ");
 //   Serial.println(ssid);
 //  
@@ -142,30 +141,14 @@ void loop() {
   float * tofReadings = new float[NUM_TOF]; 
   float * icmReadings = new float [NUM_SENS]; 
   ATAT.readTOFs(tofReadings, false);
-   
-  
-  //float * imuReadings = new float[NUM_SENS];
-  //take 10 readings find average 
-//  for(int i = 0; i < 10; i++){ 
-//    //TODO: Read ultrasonic method will change 
-//    ATAT.readUltrasonic(&hc, tofReadings); 
-//    ultrasonicAverageFront += tofReadings[0]/10.00; 
-//    ultrasonicAverageLeft += tofReadings[1]/10.00; 
-//  }
 
-  //This is 40ms read 
-  //ATAT.readUltrasonicBetter(tofReadings); 
+
   ultrasonicAverageFront = tofReadings[0]/10.0; 
   ultrasonicAverageLeft = tofReadings[1]/10.0; 
-//  Serial.print("front tof reading: ");
-//  Serial.println(ultrasonicAverageFront); 
-//  Serial.print("left tof reading: ");
-//  Serial.println(ultrasonicAverageLeft);
   ATAT.readICM(&icm, icmReadings);
 
-// Telemetry 
-//  float startTime = millis();
-//  if (count == 5){
+ //Telemetry 
+//  if (count == 3){
 //    client.connect(addr, port); 
 //    telemetry.uploadMainData(tofReadings, icmReadings, orientation);
 //    count = 0;
@@ -173,15 +156,11 @@ void loop() {
 //   else {
 //    count++;   
 //  }
-//  float endTime = millis();
-//  Serial.print("Time: ");
-//  Serial.println(endTime-startTime);
-  
   //check if it is in a pit, if it is ignore readings. the variable Gy corresponds to pit readings.  
 
   
 
-  if(icmReadings[4] < 0.11 && icmReadings[4] > -0.11){
+  if(icmReadings[4] < 0.2 && icmReadings[4] > -0.2){
     if(orientation == LEFT){  
       ATAT.readTOFs(tofReadings, false);
       ultrasonicAverageFront = tofReadings[0]/10.0; 
@@ -208,11 +187,11 @@ void loop() {
               }
             
             else {
-              motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
+              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
               }
 //         ATAT.readTOFs(tofReadings, false);
 
-             motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
+             motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
          
          
 //         if((tofReadings[1]/10.00 > (LEFT_NEAR_THRESHOLD + TILE_LENGTH*changeOrientationUp)) && (tofReadings[1]/10.00 < (LEFT_FAR_THRESHOLD + TILE_LENGTH*changeOrientationUp)) && tofReadings[1]/10 != -2.00){
@@ -267,7 +246,7 @@ void loop() {
 //          Serial.println(icmReadings[5]);
           
         }
-        motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
+        motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
         //delay(50); 
         motorControl.estop();
 
@@ -328,10 +307,10 @@ void loop() {
               }
             
             else {
-              motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
+              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
               }
 
-           motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
+           motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
       } else { 
         motorControl.estop();
         //TODO: Test speed + turning threshold 
@@ -412,10 +391,10 @@ void loop() {
               }
             
             else {
-              motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
+              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
               }
 
-              motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
+              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
       } else { 
         motorControl.estop();
         //changeOrientationRight++;
@@ -507,10 +486,10 @@ void loop() {
               }
             
             else {
-              motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
+              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
               }
 
-              motorControl.cruise(HALF_SPEED, HALF_SPEED, 1);
+              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
       } else { 
         motorControl.estop();
         //TODO: Test speed + turning threshold 
