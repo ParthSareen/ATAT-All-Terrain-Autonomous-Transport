@@ -63,7 +63,9 @@ int changeOrientationUp = 0;
 int changeOrientationRight = 0; 
 int changeOrientationDown = 0;
 
-int orientation = LEFT;  
+int orientation = LEFT;
+int prevOrientation = DOWN; 
+  
 int track[6][6] = {  {0, 0, 0, 0, 0, 0}, 
                      {0, 0, 0, 0, 0, 0},
                      {0, 0, 0, 0, 0, 0},
@@ -191,6 +193,11 @@ void loop() {
               }
 //         ATAT.readTOFs(tofReadings, false);
 
+             if((changeOrientationLeft >= 1) && (orientation != prevOrientation)){
+              prevOrientation = orientation; 
+              delay(250); 
+             }
+
              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
          
          
@@ -310,6 +317,11 @@ void loop() {
               motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
               }
 
+             if((changeOrientationUp >= 1) && (orientation != prevOrientation)){
+              prevOrientation = orientation; 
+              delay(250); 
+             }
+
            motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
       } else { 
         motorControl.estop();
@@ -393,6 +405,11 @@ void loop() {
             else {
               motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
               }
+
+              if((changeOrientationRight >= 1) && (orientation != prevOrientation)){
+              prevOrientation = orientation; 
+              delay(250); 
+             }
 
               motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
       } else { 
@@ -488,6 +505,11 @@ void loop() {
             else {
               motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
               }
+
+              if((changeOrientationDown >= 1) && (orientation != prevOrientation)){
+              prevOrientation = orientation; 
+              delay(250); 
+             }
 
               motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
       } else { 
