@@ -97,6 +97,8 @@ int track[6][6] = {  {0, 0, 0, 0, 0, 0},
  */
 int currentPosition[2] = {5, 4}; 
 
+bool pit = false; 
+
 bool testState = 0; 
 
 float ultrasonicAverageFront = 0; 
@@ -126,7 +128,7 @@ void autoCorrect(float ultrasonicAverageLeft, int changeOrientation, int delayTi
 void delayWithCorrection(float ultrasonicAverageLeft, int changeOrientation, int delayTime, int whileDelay){
     int startTime = millis();
 
-    while (millis()-startTime > whileDelay) {
+    while ((millis()-startTime) > whileDelay) {
         autoCorrect(ultrasonicAverageLeft, changeOrientation, delayTime);
     }
 }
@@ -202,7 +204,7 @@ void loop() {
             if((changeOrientationLeft >= 1) && (orientation != prevOrientation)){
                 prevOrientation = orientation;
                 motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
-                delayWithCorrection(ultrasonicAverageLeft, changeOrientationLeft, 150, 1000);
+                delayWithCorrection(ultrasonicAverageLeft, changeOrientationLeft, 150, 1500);
             //              delay(250);
 
             }
@@ -271,7 +273,7 @@ void loop() {
             prevOrientation = orientation;
 //            delay(250);
             motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
-            delayWithCorrection(ultrasonicAverageLeft, changeOrientationUp, 150, 1000);
+            delayWithCorrection(ultrasonicAverageLeft, changeOrientationUp, 150, 1500);
         }
 
         motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
@@ -329,7 +331,7 @@ void loop() {
         if((changeOrientationRight >= 1) && (orientation != prevOrientation)){
             prevOrientation = orientation;
             motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
-            delayWithCorrection(ultrasonicAverageLeft, changeOrientationRight, 150, 1000);
+            delayWithCorrection(ultrasonicAverageLeft, changeOrientationRight, 150, 1500);
 //        delay(250);
         }
 
@@ -401,17 +403,19 @@ void loop() {
       if(ultrasonicAverageFront > ((FRONT_US_DIST + TILE_LENGTH/2.00+TILE_LENGTH)+changeOrientationDown*TILE_LENGTH) || ultrasonicAverageFront < 0){
         autoCorrect(ultrasonicAverageLeft, changeOrientationDown, 100);
 
-
-        if ((changeOrientationRight == 1)) {
+        
+        if ((changeOrientationRight == 1) && pit == false) {
+          Serial.println("changeOrientationRight == 1");
           prevOrientation = orientation;
           motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
           delayWithCorrection(ultrasonicAverageLeft, changeOrientationDown, 150, 5000);
+          pit = true; 
          }
           
         if((changeOrientationDown > 1) && (orientation != prevOrientation)){
             prevOrientation = orientation;
             motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
-            delayWithCorrection(ultrasonicAverageLeft, changeOrientationDown, 150, 1000);
+            delayWithCorrection(ultrasonicAverageLeft, changeOrientationDown, 150, 1500);
 //            delay(250);
         }
 
@@ -431,7 +435,7 @@ void loop() {
 //          Serial.print("left tof reading: ");
 //          Serial.println(ultrasonicAverageLeft);
 //          Serial.print("orientation: "); 
-//          Serial.println(orientation);
+//          Serial.println(orientation); 
         }
         motorControl.cruise(MAX_SPEED,MAX_SPEED, 1);
         //delay(50); 
