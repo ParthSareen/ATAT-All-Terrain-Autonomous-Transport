@@ -8,14 +8,7 @@
 #include "Adafruit_Sensor.h"
 #include "Adafruit_VL53L0X.h"
 #include "drive.h"
-
-#include <telemetry.pb.h>
-#include <ESP8266WiFi.h>
-#include <pb.h>
-#include <pb_common.h>
-#include <pb_decode.h>
-#include <pb_encode.h>
-#include <Telemetry.h>
+#include <type_traits>
 
 #define NUM_TOF 2
 #define NUM_SENS 6
@@ -71,18 +64,24 @@ bool testState = 0;
 float ultrasonicAverageFront = 0;
 float ultrasonicAverageLeft = 0;
 
+// For average tof values
+float tofMeanFront = 0;
+float tofMeanLeft = 0;
+int tofFrontValid = 0; 
+int tofLeftValid = 0; 
+
 float lastUltrasonicAverageFront = 0;
 float lastUltrasonicAverageLeft = 0;
 
 void setup() {
   Serial.begin(115200);
+  Serial.println("Setup");
 
   pinMode(XSHUT1, OUTPUT);
   pinMode(XSHUT2, OUTPUT);
   Wire.begin();
 
   ATAT.setupTOFs(&lox1, &lox2, XSHUT1, XSHUT2);
-  Serial.println("Calibrating ICM");
   ATAT.calibrateICM(&icm);
   delay(5000);
 
@@ -92,12 +91,31 @@ void loop() {
 
   float * tofReadings = new float[NUM_TOF];
   float * icmReadings = new float [NUM_SENS];
-  ATAT.readTOFs(tofReadings, false);
 
+  for(int i = 0; i < 5; i++){
+    // float * tofReadings = new float[NUM_TOF];
+    ATAT.readTOFs(tofReadings, false);
 
-  ultrasonicAverageFront = tofReadings[0] / 10.0;
-  ultrasonicAverageLeft = tofReadings[1] / 10.0;
+    // if (std::is_floating_point<tofReadings[0]>){
+      tofMeanFront += tofReadings[0]; 
+      tofFrontValid++; 
+    // }
+
+    // if (std::is_floating_point<tofReadings[1]>){
+      tofMeanLeft += tofReadings[1]; 
+      tofLeftValid++; 
+    // }
+    
+  }
+
+  ultrasonicAverageFront = (tofMeanFront / tofFrontValid) / 10.0;
+  ultrasonicAverageLeft = (tofMeanLeft / tofLeftValid) / 10.0;
+
+//  ultrasonicAverageFront = tofReadings[0] / 10.0;
+//  ultrasonicAverageLeft = tofReadings[1] / 10.0;
   ATAT.readICM(&icm, icmReadings);
+  
+  Serial.println(ultrasonicAverageFront);
 
   if (icmReadings[4] < 0.2 && icmReadings[4] > -0.2) {
     if (orientation == LEFT) {
