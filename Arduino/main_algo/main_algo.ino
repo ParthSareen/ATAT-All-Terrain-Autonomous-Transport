@@ -8,7 +8,6 @@
 #include "Adafruit_Sensor.h"
 #include "Adafruit_VL53L0X.h"
 #include "drive.h"
-#include <type_traits>
 
 #define NUM_TOF 2
 #define NUM_SENS 6
@@ -29,6 +28,10 @@
 // Measured
 #define CORRECTION_THRESHOLD_UPPER 17
 #define CORRECTION_THRESHOLD_LOWER 12
+
+#define TURN_ANGLE_UPPER_THRESHOLD 1.65806
+#define TURN_ANGLE_LOWER_THRESHOLD 1.48353
+
 Adafruit_ICM20948 icm;
 
 Adafruit_VL53L0X lox1 = Adafruit_VL53L0X();
@@ -95,14 +98,18 @@ void loop() {
   for (int i = 0; i < 5; i++) {
     ATAT.readTOFs(tofReadings, false);
 
-    tofMeanFront += tofReadings[0];
-    tofFrontValid++;
+    if (tofReadings[0] > 0){
+      tofMeanFront += tofReadings[0];
+      tofFrontValid++;
+    }
 
-    tofMeanLeft += tofReadings[1];
-    tofLeftValid++;
+    if (tofReadings[1] > 0){
+      tofMeanLeft += tofReadings[1];
+      tofLeftValid++;
+    }
 
   }
-
+ 
   ultrasonicAverageFront = (tofMeanFront / tofFrontValid) / 10.0;
   ultrasonicAverageLeft = (tofMeanLeft / tofLeftValid) / 10.0;
   ATAT.readICM(&icm, icmReadings);
@@ -139,15 +146,27 @@ void loop() {
         motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
 
       } else {
+        
         float currentTime = millis();
+        float sampleTime = millis();
+        float timeDelta = 0;
+        float currentAngle = 0; 
+
         motorControl.estop();
         orientation = UP;
         motorControl.turn_right(MAX_SPEED);
 
-        while ((millis() - currentTime) < (720 + changeOrientationLeft * 5) ) {
-          ATAT.readTOFs(tofReadings, false);
-          ultrasonicAverageFront = tofReadings[0] / 10.0;
-          ultrasonicAverageLeft = tofReadings[1] / 10.0;
+        // Previous time delay was 720
+        while (((millis() - currentTime) < (1000 + changeOrientationLeft * 5)) &&  (currentAngle < TURN_ANGLE_LOWER_THRESHOLD)) {
+          // ATAT.readTOFs(tofReadings, false);
+          // ultrasonicAverageFront = tofReadings[0] / 10.0;
+          // ultrasonicAverageLeft = tofReadings[1] / 10.0;
+
+          ATAT.readICM(&icm, icmReadings); // Read ICM
+          sampleTime = millis(); // New current time
+          timeDelta = sampleTime - currentTime; 
+          currentAngle += abs(timeDelta*(icmReadings[4]/1000.0)); // Determine angle in rad
+
         }
         motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
         motorControl.estop();
