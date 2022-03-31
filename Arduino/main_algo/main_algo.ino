@@ -67,15 +67,15 @@ float ultrasonicAverageLeft = 0;
 // For average tof values
 float tofMeanFront = 0;
 float tofMeanLeft = 0;
-int tofFrontValid = 0; 
-int tofLeftValid = 0; 
+int tofFrontValid = 0;
+int tofLeftValid = 0;
 
 float lastUltrasonicAverageFront = 0;
 float lastUltrasonicAverageLeft = 0;
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println("Setup");
+  // Serial.begin(115200);
+  // Serial.println("Setup");
 
   pinMode(XSHUT1, OUTPUT);
   pinMode(XSHUT2, OUTPUT);
@@ -92,30 +92,20 @@ void loop() {
   float * tofReadings = new float[NUM_TOF];
   float * icmReadings = new float [NUM_SENS];
 
-  for(int i = 0; i < 5; i++){
-    // float * tofReadings = new float[NUM_TOF];
+  for (int i = 0; i < 5; i++) {
     ATAT.readTOFs(tofReadings, false);
 
-    // if (std::is_floating_point<tofReadings[0]>){
-      tofMeanFront += tofReadings[0]; 
-      tofFrontValid++; 
-    // }
+    tofMeanFront += tofReadings[0];
+    tofFrontValid++;
 
-    // if (std::is_floating_point<tofReadings[1]>){
-      tofMeanLeft += tofReadings[1]; 
-      tofLeftValid++; 
-    // }
-    
+    tofMeanLeft += tofReadings[1];
+    tofLeftValid++;
+
   }
 
   ultrasonicAverageFront = (tofMeanFront / tofFrontValid) / 10.0;
   ultrasonicAverageLeft = (tofMeanLeft / tofLeftValid) / 10.0;
-
-//  ultrasonicAverageFront = tofReadings[0] / 10.0;
-//  ultrasonicAverageLeft = tofReadings[1] / 10.0;
   ATAT.readICM(&icm, icmReadings);
-  
-  Serial.println(ultrasonicAverageFront);
 
   if (icmReadings[4] < 0.2 && icmReadings[4] > -0.2) {
     if (orientation == LEFT) {

@@ -33,7 +33,7 @@ Drive::Drive(int pwm_pin_left, int pwm_pin_right, int dir_pin_left, int dir_pin_
 */
 void Drive::accelerate(int rate, bool fwd = true){
 
-	Serial.println("==> Accelerating");
+	// Serial.println("==> Accelerating");
 
 	// Set robot state
 	_mode = ACCELERATING; 
@@ -48,8 +48,8 @@ void Drive::accelerate(int rate, bool fwd = true){
 
 		analogWrite(_pwm_pin_left, i);
 		analogWrite(_pwm_pin_right, i);
-		Serial.print("Speed up: ");
-		Serial.println(i);
+		// Serial.print("Speed up: ");
+		// Serial.println(i);
 
 		// Track new current speeds
 		_current_speed = convert_i_to_speed(i); 
@@ -74,7 +74,7 @@ void Drive::accelerate(int rate, bool fwd = true){
 */
 void Drive::deccelerate(int rate, bool fwd = true){
 
-	Serial.println("==> Deccelerating");
+	// Serial.println("==> Deccelerating");
 
 	// Set robot state
 	_mode = DECELERATING;
@@ -85,14 +85,14 @@ void Drive::deccelerate(int rate, bool fwd = true){
 	// Get current speed as starting point
 	int curr_speed_i = convert_speed_to_i(_current_speed); 
 
-	Serial.println(curr_speed_i);
+	// Serial.println(curr_speed_i);
 
 	for(int i=curr_speed_i; i<255; i++){
 
 		analogWrite(_pwm_pin_left, i);
 		analogWrite(_pwm_pin_right, i);
-		Serial.print("Slow Down: ");
-		Serial.println(i);
+		// Serial.print("Slow Down: ");
+		// Serial.println(i);
 
 		_current_speed = convert_i_to_speed(i); 
 		_current_rpm = convert_i_to_rpm(i);
@@ -124,8 +124,8 @@ void Drive::turn_right(float speed = MAX_SPEED){
   _set_right();
   analogWrite(_pwm_pin_left, turn_speed_i);
   analogWrite(_pwm_pin_right, turn_speed_i);
-  Serial.print("Turn right at ");
-  Serial.println(turn_speed_i);
+  // Serial.print("Turn right at ");
+  // Serial.println(turn_speed_i);
 
   // Update speed parameter
   _current_speed = turn_speed_i;
@@ -148,8 +148,8 @@ void Drive::turn_left(float speed = MAX_SPEED){
   _set_left();
   analogWrite(_pwm_pin_left, turn_speed_i);
   analogWrite(_pwm_pin_right, turn_speed_i);
-  Serial.print("Turn left at ");
-  Serial.println(turn_speed_i);
+  // Serial.print("Turn left at ");
+  // Serial.println(turn_speed_i);
 
   // Update speed parameter
   _current_speed = turn_speed_i;
@@ -165,7 +165,7 @@ void Drive::estop(){
   // Set PWM to stopped
   analogWrite(_pwm_pin_left, 255);
   analogWrite(_pwm_pin_right, 255);
-  Serial.println("Stop");
+  // Serial.println("Stop");
 
   // Update speed parameter
   _current_speed = 0;
@@ -187,7 +187,7 @@ void Drive::cruise(float lspeed = MAX_SPEED, float rspeed = MAX_SPEED, bool fwd 
   
   analogWrite(_pwm_pin_left, lspeed_i);
   analogWrite(_pwm_pin_right, rspeed_i);
-  Serial.println("Cruise");
+  // Serial.println("Cruise");
 
   // Update speed parameter
   _current_speed = lspeed;
