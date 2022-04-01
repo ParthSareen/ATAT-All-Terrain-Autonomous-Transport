@@ -31,12 +31,12 @@
 #define DIR_PIN_LEFT D4
 #define DIR_PIN_RIGHT D6
 #define FRONT_US_DIST 10.00
-#define TILE_LENGTH 28
+#define TILE_LENGTH 32.5
 
 // Measured
 //#define CORRECTION_THRESHOLD_UPPER 21 
 //#define CORRECTION_THRESHOLD_LOWER 8.5
-#define CORRECTION_THRESHOLD_UPPER 17 
+#define CORRECTION_THRESHOLD_UPPER 16 
 #define CORRECTION_THRESHOLD_LOWER 13 
 Adafruit_ICM20948 icm;
 
@@ -204,7 +204,7 @@ void loop() {
             if((changeOrientationLeft >= 1) && (orientation != prevOrientation)){
                 prevOrientation = orientation;
                 motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
-                delayWithCorrection(ultrasonicAverageLeft, changeOrientationLeft, 150, 1500);
+                delayWithCorrection(ultrasonicAverageLeft, changeOrientationLeft, 150, 700);
             //              delay(250);
 
             }
@@ -273,7 +273,7 @@ void loop() {
             prevOrientation = orientation;
 //            delay(250);
             motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
-            delayWithCorrection(ultrasonicAverageLeft, changeOrientationUp, 150, 1500);
+            delayWithCorrection(ultrasonicAverageLeft, changeOrientationUp, 150, 700);
         }
 
         motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
@@ -331,7 +331,7 @@ void loop() {
         if((changeOrientationRight >= 1) && (orientation != prevOrientation)){
             prevOrientation = orientation;
             motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
-            delayWithCorrection(ultrasonicAverageLeft, changeOrientationRight, 150, 1500);
+            delayWithCorrection(ultrasonicAverageLeft, changeOrientationRight, 150, 700);
 //        delay(250);
         }
 
@@ -415,7 +415,7 @@ void loop() {
         if((changeOrientationDown > 1) && (orientation != prevOrientation)){
             prevOrientation = orientation;
             motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
-            delayWithCorrection(ultrasonicAverageLeft, changeOrientationDown, 150, 1500);
+            delayWithCorrection(ultrasonicAverageLeft, changeOrientationDown, 150, 700);
 //            delay(250);
         }
 
@@ -493,7 +493,7 @@ void loop() {
   //delete[] imuReadings;
   delete[] tofReadings;
   
-  //delay(1000);
+  //delay(700);
   //motorControl.estop(); 
 //  while(1){ 
 //    ATAT.readICM(&icm, imuReadings);
