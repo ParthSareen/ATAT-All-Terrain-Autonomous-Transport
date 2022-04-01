@@ -31,7 +31,7 @@
 #define DIR_PIN_LEFT D4
 #define DIR_PIN_RIGHT D6
 #define FRONT_US_DIST 10.00
-#define TILE_LENGTH 32.5
+#define TILE_LENGTH 34 
 
 // Measured
 //#define CORRECTION_THRESHOLD_UPPER 21 
@@ -58,7 +58,7 @@ int distance;
 //Setting up Ultrasonic and IMU and motor
 Drive motorControl(PWM_PIN_LEFT, PWM_PIN_RIGHT, DIR_PIN_LEFT, DIR_PIN_RIGHT); 
 
-int changeOrientationLeft = 0; 
+float changeOrientationLeft = 0; 
 int changeOrientationUp = 0; 
 int changeOrientationRight = 0; 
 int changeOrientationDown = 0;
@@ -98,7 +98,7 @@ int track[6][6] = {  {0, 0, 0, 0, 0, 0},
 int currentPosition[2] = {5, 4}; 
 
 bool pit = false; 
-
+bool pit2 = false; 
 bool testState = 0; 
 
 float ultrasonicAverageFront = 0; 
@@ -197,10 +197,19 @@ void loop() {
       ultrasonicAverageLeft = tofReadings[1]/10.0; 
       //index check 
         //Check if current pos is visited, check if next pos in orientation is unvisited, check if ultrasonics are reading greater than half a tile 
+      if(changeOrientationLeft == 2){ 
+        changeOrientationLeft = 2.25;
+      }
       if(ultrasonicAverageFront > ((FRONT_US_DIST + TILE_LENGTH/2.00)+changeOrientationLeft*TILE_LENGTH) || ultrasonicAverageFront < 0){
 
            autoCorrect(ultrasonicAverageLeft, changeOrientationLeft, 100);
-
+            if ((changeOrientationRight == 1) && pit == false) {
+              Serial.println("changeOrientationRight == 1");
+              prevOrientation = orientation;
+              motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
+              delayWithCorrection(ultrasonicAverageLeft, changeOrientationDown, 150, 5000);
+              pit = true; 
+            }
             if((changeOrientationLeft >= 1) && (orientation != prevOrientation)){
                 prevOrientation = orientation;
                 motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
@@ -405,14 +414,18 @@ void loop() {
 
         
         if ((changeOrientationRight == 1) && pit == false) {
-          Serial.println("changeOrientationRight == 1");
           prevOrientation = orientation;
           motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
           delayWithCorrection(ultrasonicAverageLeft, changeOrientationDown, 150, 5000);
           pit = true; 
          }
-          
-        if((changeOrientationDown > 1) && (orientation != prevOrientation)){
+        if(changeOrientationRight == 2 && pit2 == false){ 
+          prevOrientation = orientation; 
+          motorControl.cruise(MAX_SPEED, MAX_SPEED, 1); 
+          delayWithCorrection(ultrasonicAverageLeft, changeOrientationDown, 150, 4000);  
+          pit2 = true; 
+        }
+        else if((changeOrientationDown > 1) && (orientation != prevOrientation)){
             prevOrientation = orientation;
             motorControl.cruise(MAX_SPEED, MAX_SPEED, 1);
             delayWithCorrection(ultrasonicAverageLeft, changeOrientationDown, 150, 700);
